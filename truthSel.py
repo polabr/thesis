@@ -15,6 +15,12 @@ ll_nentries = ioll.get_entries()
 
 pionEntries = []
 
+def angleCalc(px, py, pz): # assumes wrt beam, which is (0, 0, 1)
+
+    mag = np.sqrt( px**2 + py**2 + pz**2 )
+    theta = np.arccos( pz / mag )
+    return theta
+
 # loop over each event 
 for i in range(ll_nentries):
 
@@ -144,6 +150,10 @@ lProtonMom = []
 pionMom = []
 muonMom = []
 
+lProtonAng = []
+pionAng = []
+muonAng = []
+
 ### PROTON LOOP ###
 print("Of the remaining events (which have a charged pion and meet cuts), investigate the protons.")
 for i in pionEntries: 
@@ -204,6 +214,7 @@ for i in finalList:
     muons = 0 # need to check if there is only 1 muon
     protons = 0
     energiesP = []
+    angP = -99999.0
 
     for j in range ( numMCTracks ) :
 
@@ -218,30 +229,64 @@ for i in finalList:
             if (pdg == 13): # mu 
                 print("Found muon. PDG: ", pdg)
                 energyMu = mctrack.Start().E()
+                pxMu = mctrack.Start().Px()
+                pyMu = mctrack.Start().Py()
+                pzMu = mctrack.Start().Pz()
+                angMu = angleCalc( pxMu, pyMu, pzMu )
                 muons = muons + 1
 
             if (pdg == -211 or pdg == 211):
                 print("Found pion. PDG: ", pdg)
                 energyPi = mctrack.Start().E()
+                pxPi = mctrack.Start().Px()
+                pyPi = mctrack.Start().Py()
+                pzPi = mctrack.Start().Pz()
+                angPi = angleCalc( pxPi, pyPi, pzPi )
 
             if (pdg == 2212): # protons
                 protons = protons + 1 
                 energyP = mctrack.Start().E()
                 energiesP.append(energyP)
 
+                # is this the leading proton?
+                if ( energyP == max(energiesP) ):
+                    pxP = mctrack.Start().Px()
+                    pyP = mctrack.Start().Py()
+                    pzP = mctrack.Start().Pz()
+                    angP = angleCalc( pxP, pyP, pzP )
+                    print("angP was overwritten!! It now corresponds to leading proton energy: ", energyP)
+                    print("This is the angP value: ", angP)
+
     if (muons == 1):
         muonMom.append( energyMu )
         pionMom.append( energyPi )
         lProtonMom.append ( max(energiesP) )
 
+        muonAng.append( angMu )
+        pionAng.append( angPi )
+        lProtonAng.append ( angP )
+        #lProtonAng.app
+        #pionAng = []
+        
+
+
 print("Here are the final lists and their sizes.")
+
 print("lProtonMom: ", lProtonMom, " with a size of: ", len(lProtonMom)) 
 print("muonMom: ", muonMom, " with a size of: ", len(muonMom)) 
 print("pionMom: ", pionMom, " with a size of: ", len(pionMom)) 
 
-np.savetxt('lProtonMom.csv', lProtonMom, delimiter=',')
-np.savetxt('muonMom.csv', muonMom, delimiter=',')
-np.savetxt('pionMom.csv', pionMom, delimiter=',')
+print("muonAng: ", muonAng, " with a size of: ", len(muonAng)) 
+print("pionAng: ", pionAng, " with a size of: ", len(pionAng)) 
+print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
+
+np.savetxt('lProtonMom1.csv', lProtonMom, delimiter=',')
+np.savetxt('muonMom1.csv', muonMom, delimiter=',')
+np.savetxt('pionMom1.csv', pionMom, delimiter=',')
+
+np.savetxt('muonAng1.csv', muonAng, delimiter=',')
+np.savetxt('pionAng1.csv', pionAng, delimiter=',')
+np.savetxt('lProtonAng1.csv', lProtonAng, delimiter=',')
 
 # Open the file 
 #f = TFile("/cluster/tufts/wongjiradlab/larbys/data/mcc9/mcc9_v29e_dl_run3b_bnb_nu_overlay_nocrtremerge/data/00/01/41/21/merged_dlreco_06ae2262-83dc-4375-a9a6-e74e63f55849.root","READ")
