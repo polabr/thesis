@@ -14,6 +14,7 @@ from larlite import larlite
 
 f = TFile("/cluster/tufts/wongjiradlabnu/nutufts/data/ntuples/dlgen2_reco_v2me05_ntuple_v0_mcc9_v29e_dl_run3b_bnb_nu_overlay_nocrtremerge.root","READ")
 t = f.Get("EventTree")
+t_pot = f.Get("potTree")
 
 entries = t.GetEntries()
 print("This is how many entries this ntuple file has: ", entries)
@@ -30,6 +31,8 @@ lProtonAng = []
 pionAng = []
 muonAng = []
 
+weights = []
+
 # returns momentum & angle
 def momAngleCalc(px, py, pz): # assumes wrt beam, which is (0, 0, 1)
 
@@ -37,7 +40,15 @@ def momAngleCalc(px, py, pz): # assumes wrt beam, which is (0, 0, 1)
     cosTheta = pz / mag 
     return mag, cosTheta
 
-for e in range(15, 20):
+potSum = 0.
+for i in range( t_pot.GetEntries() ):
+  t_pot.GetEntry(i)
+  print("This is event ", i, ", POT is ", t_pot.totGoodPOT)
+  potSum = potSum + t_pot.totGoodPOT
+
+print("The total POT here is: ", potSum)
+
+for e in range(entries):
 
     t.GetEntry(e)
     
@@ -69,6 +80,12 @@ for e in range(15, 20):
 
     leadingMomP = -999
     leadingAngP = -999
+    
+    leadingMomMu = -999
+    leadingAngMu = -999
+
+    leadingMomPi = -999
+    leadingAngPi = -999
 
     # number of particles above threshold
     protonsN = 0 
@@ -93,35 +110,37 @@ for e in range(15, 20):
         if (pdg == 211 or pdg == -211): 
             print("Found pion.")
             pions = pions + 1
+
             if (pions > 1):
                 print("More than 1 pion! Skipping event.")
                 flag = 1
                 break
+
             pxPi = t.truePrimPartPx[i]
             pyPi = t.truePrimPartPy[i]
             pzPi = t.truePrimPartPz[i]
             #piEnergy = t.truePrimPartE[i]
             momPi, angPi = momAngleCalc( pxPi, pyPi, pzPi )
+            print("Mom Pi is: ", momPi)
+            print("Ang Pi is: ", angPi)
+
             print("Does this pion have at least momentum 70 MeV/c (0.07 GeV/c)?")
-            print("Pi mom is: ", momPi)
-            if (momPi < 0.07):
-                print("Pi mom is less than 0.07 GeV/c. Moving onto next event. ")
-                print("Pi mom ended up being: ", momPi, " GeV")
+            if (momPi > 0.07):
+                print("Pi mom is > 0.07 GeV/c. It is: ", momPi, " GeV/c. Incrementing number of N pions.")
+                pionsN = pionsN + 1
+                leadingMomPi = momPi
+                leadingAngPi = angPi
+
+            if (pionsN > 1):
+                print("More than 1 pion that meets threshold! Skipping event.")
                 flag = 1
                 break
-            else: 
-                print("Pi mom is > 70 MeV/c. It is: ", momPi, " Gev")
-                print("If got to this point, event is good! ")
-                #flag = 2
 
         # Looking at muons
         if (pdg == 13): # mu 
             print("Found muon.")
             muons = muons + 1
-            if (muons > 1):
-                print("More than 1 muon! Skipping event.")
-                flag = 1
-                break
+            
             #energyMu = t.truePrimPartE[i]
             pxMu = t.truePrimPartPx[i]
             pyMu = t.truePrimPartPy[i]
@@ -129,6 +148,18 @@ for e in range(15, 20):
             momMu, angMu = momAngleCalc( pxMu, pyMu, pzMu )
             print("Mom Mu is: ", momMu)
             print("Ang Mu is: ", angMu)
+
+            print("Does this muon meet the momentum threshold (max 1.5 GeV)?")
+            if ( momMu < 1.5 ):
+                print("Yes, it is under 1.5 GeV. Incrementing number of N muons.")
+                muonsN = muonsN + 1
+                leadingMomMu = momMu
+                leadingAngMu = angMu
+
+            if (muonsN > 1):
+                print("More than 1 muon that meets threshold! Skipping event.")
+                flag = 1
+                break
     
         # Now look at protons
         if (pdg == 2212):
@@ -169,19 +200,25 @@ for e in range(15, 20):
     print("In this event, there were ", protons, " number of primary protons.")
     print("And ", protonsN, " protons were above threshold.")
 
+    print("In this event, there were ", muons, " number of primary muons.")
+    print("And ", muonsN, " muons were above threshold.")
+
+    print("In this event, there were ", pions, " number of primary pions.")
+    print("And ", pionsN, " pions were above threshold.")
+
     # require 
-    if ( pions == 0 ): 
-        print("Zero pions. Skip to next event.")
+    if ( pionsN == 0 ): 
+        print("Zero pions above threshold. Skip to next event.")
         continue
 
     # we need at least one proton that passes cuts in my selection
     if ( protonsN < 1 ): 
-        print("Zero protons. Skip to next event.")
+        print("Zero protons above threshold. Skip to next event.")
         continue
 
     # only want 1 muon in my selection
-    if ( muons == 0 ): 
-        print("Zero muons. Skip to next event.")
+    if ( muonsN == 0 ): 
+        print("Zero muons that meet threshold. Skip to next event.")
         continue
     
     print("This is the energies for each proton: ", NMomsP)
@@ -193,12 +230,13 @@ for e in range(15, 20):
     print("If got to this point, this means the event wasn't skipped.")
     print("Filling lists...")
     finalList.append(e)
-    pionMom.append( momPi*1000 )
-    pionAng.append( angPi )
-    muonMom.append( momMu*1000 )
-    muonAng.append( angMu )
+    pionMom.append( leadingMomPi*1000 )
+    pionAng.append( leadingAngPi )
+    muonMom.append( leadingMomMu*1000 )
+    muonAng.append( leadingAngMu )
     lProtonMom.append ( leadingMomP*1000 )
     lProtonAng.append ( leadingAngP )
+    weights.append( t.xsecWeight )
 
     #if (sum(NMomsP) > 300) and (sum(KEs_P) > 45): 
     #    finalList.append(e) # passed all cuts!
@@ -227,13 +265,15 @@ print("muonAng: ", muonAng, " with a size of: ", len(muonAng))
 print("pionAng: ", pionAng, " with a size of: ", len(pionAng)) 
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-np.savetxt('ntuple_lProtonMom_101123.csv', lProtonMom, delimiter=',')
-np.savetxt('ntuple_muonMom_101123.csv', muonMom, delimiter=',')
-np.savetxt('ntuple_pionMom_101123.csv', pionMom, delimiter=',')
+np.savetxt('ntuple_lProtonMom_101523.csv', lProtonMom, delimiter=',')
+np.savetxt('ntuple_muonMom_101523.csv', muonMom, delimiter=',')
+np.savetxt('ntuple_pionMom_101523.csv', pionMom, delimiter=',')
 
-np.savetxt('ntuple_muonAng_101123.csv', muonAng, delimiter=',')
-np.savetxt('ntuple_pionAng_101123.csv', pionAng, delimiter=',')
-np.savetxt('ntuple_lProtonAng_101123.csv', lProtonAng, delimiter=',')
+np.savetxt('ntuple_muonAng_101523.csv', muonAng, delimiter=',')
+np.savetxt('ntuple_pionAng_101523.csv', pionAng, delimiter=',')
+np.savetxt('ntuple_lProtonAng_101523.csv', lProtonAng, delimiter=',')
+
+np.savetxt('ntuple_weights_101523.csv', weights, delimiter=',')
 
 '''
     # if >1 pion in event, will skip
