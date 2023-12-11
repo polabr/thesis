@@ -1,8 +1,9 @@
 import ROOT 
-from ROOT import TFile, gDirectory, TCanvas, TH1D, TColor, TGraphErrors, TMath, TLatex
+from ROOT import TFile, TTree, gDirectory, TCanvas, TH1D, TColor, TGraphErrors, TMath, TLatex
 from ROOT import TH2D
 
 import numpy as np
+from array import array
 
 from larlite import larlite
 
@@ -16,8 +17,73 @@ f = TFile("/cluster/tufts/wongjiradlabnu/nutufts/data/ntuples/dlgen2_reco_v2me05
 t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
+# Create new .root file that will contain the result of this script
+newF = TFile("selectedEvents_120823.root","recreate")
+# Make this file have a TTree
+newT = TTree("selectedEvents", "Selected Events Tree")
+
+#newT = t.CloneTree(0) # clone structure of Matt's ntuple tree
+# Add variables to TTree (in Python they must be arrays to mimic C++ types)
+run_ = array('i', [0])
+subrun_ = array('i', [0])
+event_ = array('i', [0])
+lProtonMom_ = array('d', [0.])
+pionMom_ = array('d', [0.])
+muonMom_ = array('d', [0.])
+lProtonAng_ = array('d', [0.])
+pionAng_ = array('d', [0.])
+muonAng_ = array('d', [0.])
+pxP_ = array('d', [0.])
+pyP_ = array('d', [0.])
+pzP_ = array('d', [0.])
+pxMu_ = array('d', [0.])
+pyMu_ = array('d', [0.])
+pzMu_ = array('d', [0.])
+pxPi_ = array('d', [0.])
+pyPi_ = array('d', [0.])
+pzPi_ = array('d', [0.])
+#xNu_ = array('d', [0.])
+#yNu_ = array('d', [0.])
+#zNu_ = array('d', [0.])
+eP_ = array('d', [0.])
+eMu_ = array('d', [0.])
+ePi_ = array('d', [0.])
+eNu_ = array('d', [0.])
+pdgNu_ = array('i', [0])
+weight_ = array('d', [0.])
+newT.Branch('run_', run_, 'run_/I')
+newT.Branch('subrun_', subrun_, 'subrun_/I')
+newT.Branch('event_', event_, 'event_/I')
+newT.Branch('lProtonMom_', lProtonMom_, 'lProtonMom_/D')
+newT.Branch('pionMom_', pionMom_, 'pionMom_/D')
+newT.Branch('muonMom_', muonMom_, 'muonMom_/D')
+newT.Branch('lProtonAng_', lProtonAng_, 'lProtonAng_/D')
+newT.Branch('pionAng_', pionAng_, 'pionAng_/D')
+newT.Branch('muonAng_', muonAng_, 'muonAng_/D')
+newT.Branch('pxP_', pxP_, 'pxP_/D')
+newT.Branch('pyP_', pyP_, 'pyP_/D')
+newT.Branch('pzP_', pzP_, 'pzP_/D')
+newT.Branch('pxMu_', pxMu_, 'pxMu_/D')
+newT.Branch('pyMu_', pyMu_, 'pyMu_/D')
+newT.Branch('pzMu_', pzMu_, 'pzMu_/D')
+newT.Branch('pxPi_', pxPi_, 'pxPi_/D')
+newT.Branch('pyPi_', pyPi_, 'pyPi_/D')
+newT.Branch('pzPi_', pzPi_, 'pzPi_/D')
+#newT.Branch('xNu_', xNu_, 'xNu_/D')
+#newT.Branch('yNu_', yNu_, 'yNu_/D')
+#newT.Branch('zNu_', zNu_, 'zNu_/D')
+newT.Branch('eP_', eP_, 'eP_/D')
+newT.Branch('eMu_', eMu_, 'eMu_/D')
+newT.Branch('ePi_', ePi_, 'ePi_/D')
+newT.Branch('eNu_', eNu_, 'eNu_/D')
+newT.Branch('pdgNu_', pdgNu_, 'pdgNu_/I')
+newT.Branch('weight_', weight_, 'weight_/D')
+
+
 entries = t.GetEntries()
 print("This is how many entries this ntuple file has: ", entries)
+
+newF.cd()
 
 finalList = []
 pRest = 0.938272 # proton rest mass in GeV
@@ -119,7 +185,7 @@ for e in range(entries):
             pxPi = t.truePrimPartPx[i]
             pyPi = t.truePrimPartPy[i]
             pzPi = t.truePrimPartPz[i]
-            #piEnergy = t.truePrimPartE[i]
+            energyPi = t.truePrimPartE[i]
             momPi, angPi = momAngleCalc( pxPi, pyPi, pzPi )
             print("Mom Pi is: ", momPi)
             print("Ang Pi is: ", angPi)
@@ -141,10 +207,10 @@ for e in range(entries):
             print("Found muon.")
             muons = muons + 1
             
-            #energyMu = t.truePrimPartE[i]
             pxMu = t.truePrimPartPx[i]
             pyMu = t.truePrimPartPy[i]
             pzMu = t.truePrimPartPz[i]
+            energyMu = t.truePrimPartE[i]
             momMu, angMu = momAngleCalc( pxMu, pyMu, pzMu )
             print("Mom Mu is: ", momMu)
             print("Ang Mu is: ", angMu)
@@ -172,6 +238,7 @@ for e in range(entries):
             pxP = t.truePrimPartPx[i]
             pyP = t.truePrimPartPy[i]
             pzP = t.truePrimPartPz[i]
+            energyP = t.truePrimPartE[i]
             momP, angP = momAngleCalc( pxP, pyP, pzP )
             print("Mom P is: ", momP)
             print("Ang P is: ", angP)
@@ -230,13 +297,41 @@ for e in range(entries):
     print("If got to this point, this means the event wasn't skipped.")
     print("Filling lists...")
     finalList.append(e)
+    run_[0] = t.run
+    subrun_[0] = t.subrun
+    event_[0] = t.event
     pionMom.append( leadingMomPi*1000 )
+    pionMom_[0] = leadingMomPi*1000
     pionAng.append( leadingAngPi )
+    pionAng_[0] = leadingAngPi
     muonMom.append( leadingMomMu*1000 )
+    muonMom_[0] = leadingMomMu*1000
     muonAng.append( leadingAngMu )
+    muonAng_[0] = leadingAngMu
     lProtonMom.append ( leadingMomP*1000 )
+    lProtonMom_[0] = leadingMomP*1000
     lProtonAng.append ( leadingAngP )
+    lProtonAng_[0] = leadingAngP
+    pxP_[0] = pxP
+    pyP_[0] = pyP
+    pzP_[0] = pzP
+    pxMu_[0] = pxMu
+    pyMu_[0] = pyMu
+    pzMu_[0] = pzMu
+    pxPi_[0] = pxPi
+    pyPi_[0] = pyPi
+    pzPi_[0] = pzPi
+    #xNu_[0] = t.trueVtxX
+    #yNu_[0] = t.trueVtxY
+    #zNu_[0] = t.trueVtxZ
+    eP_[0] = energyP
+    eMu_[0] = energyMu
+    ePi_[0] = energyPi
+    eNu_[0] = t.trueNuE
+    pdgNu_[0] = t.trueNuPDG
     weights.append( t.xsecWeight )
+    weight_[0] = t.xsecWeight
+    newT.Fill()
 
     #if (sum(NMomsP) > 300) and (sum(KEs_P) > 45): 
     #    finalList.append(e) # passed all cuts!
@@ -265,15 +360,18 @@ print("muonAng: ", muonAng, " with a size of: ", len(muonAng))
 print("pionAng: ", pionAng, " with a size of: ", len(pionAng)) 
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-np.savetxt('ntuple_lProtonMom_101523.csv', lProtonMom, delimiter=',')
-np.savetxt('ntuple_muonMom_101523.csv', muonMom, delimiter=',')
-np.savetxt('ntuple_pionMom_101523.csv', pionMom, delimiter=',')
+np.savetxt('ntuple_lProtonMom_120823.csv', lProtonMom, delimiter=',')
+np.savetxt('ntuple_muonMom_120823.csv', muonMom, delimiter=',')
+np.savetxt('ntuple_pionMom_120823.csv', pionMom, delimiter=',')
 
-np.savetxt('ntuple_muonAng_101523.csv', muonAng, delimiter=',')
-np.savetxt('ntuple_pionAng_101523.csv', pionAng, delimiter=',')
-np.savetxt('ntuple_lProtonAng_101523.csv', lProtonAng, delimiter=',')
+np.savetxt('ntuple_muonAng_120823.csv', muonAng, delimiter=',')
+np.savetxt('ntuple_pionAng_120823.csv', pionAng, delimiter=',')
+np.savetxt('ntuple_lProtonAng_120823.csv', lProtonAng, delimiter=',')
 
-np.savetxt('ntuple_weights_101523.csv', weights, delimiter=',')
+np.savetxt('ntuple_weights_120823.csv', weights, delimiter=',')
+
+newF.Write()
+newF.Close()
 
 '''
     # if >1 pion in event, will skip
