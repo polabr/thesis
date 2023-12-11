@@ -27,10 +27,13 @@ for i in range(ll_nentries):
     print("Going to event #: ", i)
     ioll.go_to(i)
 
+    #print("RSE: ", ioll.run_id(), " / ", ioll.subrun_id(), "/", ioll.event_id())
+
     ev_mctrack = ioll.get_data(larlite.data.kMCTrack,"mcreco")
     ev_mcshower = ioll.get_data(larlite.data.kMCShower,"mcreco")
 
-    gtruth = ioll.get_data(larlite.data.kGTruth, "generator")
+    gtruth = ioll.get_data(larlite.data.kGTruth, "generator") # DON'T use this one for truth sel!!
+    mctruth = ioll.get_data(larlite.data.kMCTruth, "generator") # this one is to be used for pi0's
 
     print("How many neutrino interactions are in this event?", gtruth.size())
     print("What is total number of primary pions according to GENIE?", gtruth.at(0).fNumPiPlus + gtruth.at(0).fNumPiMinus)
@@ -208,7 +211,11 @@ for i in finalList:
     print("THIS IS EVENT NUMBER: ", i)
     
     ioll.go_to(i)
+
+    print("RSE: ", ioll.run_id(), " / ", ioll.subrun_id(), "/", ioll.event_id())
+
     ev_mctrack = ioll.get_data(larlite.data.kMCTrack,"mcreco")
+    mctruth = ioll.get_data(larlite.data.kMCTruth, "generator") # this one is to be used for pi0's
     numMCTracks = ev_mctrack.size()
 
     muons = 0 # need to check if there is only 1 muon
@@ -251,13 +258,27 @@ for i in finalList:
                 # is this the leading proton?
                 if ( energyP == max(energiesP) ):
                     pxP = mctrack.Start().Px()
+                    print(pxP)
                     pyP = mctrack.Start().Py()
+                    print(pyP)
                     pzP = mctrack.Start().Pz()
+                    print(pzP)
                     angP = angleCalc( pxP, pyP, pzP )
                     print("angP was overwritten!! It now corresponds to leading proton energy: ", energyP)
                     print("This is the angP value: ", angP)
 
-    if (muons == 1):
+    flag = 0
+
+    # check if any pi0's
+    for mcpart in mctruth.at(0).GetParticles():
+        if mcpart.StatusCode() == 1:
+            pdgMcpart = mcpart.PdgCode()
+            print("This is pdgMcpart: ", pdgMcpart)
+            if (pdgMcpart != -211 and pdgMcpart != 211 and pdgMcpart != 2212 and pdgMcpart != 2112 and pdgMcpart != 13):
+                flag = 1
+
+
+    if (muons == 1 and flag == 0):
         muonMom.append( energyMu )
         pionMom.append( energyPi )
         lProtonMom.append ( max(energiesP) )
