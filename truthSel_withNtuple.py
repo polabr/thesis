@@ -13,12 +13,16 @@ from larlite import larlite
 #ioll.open()
 #ll_nentries = ioll.get_entries()
 
-f = TFile("/cluster/tufts/wongjiradlabnu/nutufts/data/ntuples/dlgen2_reco_v2me05_ntuple_v0_mcc9_v29e_dl_run3b_bnb_nu_overlay_nocrtremerge.root","READ")
+#f = TFile("/cluster/tufts/wongjiradlabnu/nutufts/data/ntuples/dlgen2_reco_v2me05_ntuple_v0_mcc9_v29e_dl_run3b_bnb_nu_overlay_nocrtremerge.root","READ")
+
+# new ver with interaction, mode
+f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/reco_v2me05_gen2ntuple_bnb_nu_overlay_run3_v6.root","READ")
+
 t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEvents_120823.root","recreate")
+newF = TFile("selectedEvents_011124_2.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -50,7 +54,13 @@ eMu_ = array('d', [0.])
 ePi_ = array('d', [0.])
 eNu_ = array('d', [0.])
 pdgNu_ = array('i', [0])
+modeNu_ = array('i', [0])
+intrxnNu_ = array('i', [0])
 weight_ = array('d', [0.])
+recoNuE_ = array('d', [0.])
+#maxNTrks = 100
+#nTracks_ = array('i', [0])
+#trackPID_ = array('i', maxNTrks*[0])
 newT.Branch('run_', run_, 'run_/I')
 newT.Branch('subrun_', subrun_, 'subrun_/I')
 newT.Branch('event_', event_, 'event_/I')
@@ -77,7 +87,11 @@ newT.Branch('eMu_', eMu_, 'eMu_/D')
 newT.Branch('ePi_', ePi_, 'ePi_/D')
 newT.Branch('eNu_', eNu_, 'eNu_/D')
 newT.Branch('pdgNu_', pdgNu_, 'pdgNu_/I')
+newT.Branch('modeNu_', modeNu_, 'modeNu_/I')
+newT.Branch('intrxnNu_', intrxnNu_, 'intrxnNu_/I')
 newT.Branch('weight_', weight_, 'weight_/D')
+newT.Branch('recoNuE_', recoNuE_, 'recoNuE_/D')
+#newT.Branch("trackPID_", trackPID_, 'trackPID[nTracks]/I')
 
 
 entries = t.GetEntries()
@@ -329,8 +343,12 @@ for e in range(entries):
     ePi_[0] = energyPi
     eNu_[0] = t.trueNuE
     pdgNu_[0] = t.trueNuPDG
+    modeNu_[0] = t.trueNuMode
+    intrxnNu_[0] = t.trueNuIntrxnType
     weights.append( t.xsecWeight )
     weight_[0] = t.xsecWeight
+    recoNuE_[0] = t.recoNuE
+    trackPID_[0] = t.trackPID
     newT.Fill()
 
     #if (sum(NMomsP) > 300) and (sum(KEs_P) > 45): 
@@ -360,15 +378,15 @@ print("muonAng: ", muonAng, " with a size of: ", len(muonAng))
 print("pionAng: ", pionAng, " with a size of: ", len(pionAng)) 
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-np.savetxt('ntuple_lProtonMom_120823.csv', lProtonMom, delimiter=',')
-np.savetxt('ntuple_muonMom_120823.csv', muonMom, delimiter=',')
-np.savetxt('ntuple_pionMom_120823.csv', pionMom, delimiter=',')
+#np.savetxt('ntuple_lProtonMom_011124_2.csv', lProtonMom, delimiter=',')
+#np.savetxt('ntuple_muonMom_011124_2.csv', muonMom, delimiter=',')
+#np.savetxt('ntuple_pionMom_011124_2.csv', pionMom, delimiter=',')
 
-np.savetxt('ntuple_muonAng_120823.csv', muonAng, delimiter=',')
-np.savetxt('ntuple_pionAng_120823.csv', pionAng, delimiter=',')
-np.savetxt('ntuple_lProtonAng_120823.csv', lProtonAng, delimiter=',')
+#np.savetxt('ntuple_muonAng_011124_2.csv', muonAng, delimiter=',')
+#np.savetxt('ntuple_pionAng_011124_2.csv', pionAng, delimiter=',')
+#np.savetxt('ntuple_lProtonAng_011124_2.csv', lProtonAng, delimiter=',')
 
-np.savetxt('ntuple_weights_120823.csv', weights, delimiter=',')
+#np.savetxt('ntuple_weights_011124_2.csv', weights, delimiter=',')
 
 newF.Write()
 newF.Close()
