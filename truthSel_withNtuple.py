@@ -22,7 +22,7 @@ t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEvents_011124_2.root","recreate")
+newF = TFile("selectedEventsPrim_050824_vetod_test.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -100,6 +100,13 @@ print("This is how many entries this ntuple file has: ", entries)
 newF.cd()
 
 finalList = []
+
+# events I am vetoing for now
+veto = np.loadtxt("allDiff.txt", dtype=float) 
+veto = veto.astype(np.int64)
+print("Veto'd events: ", veto) 
+print("How many events?", veto.shape)
+
 pRest = 0.938272 # proton rest mass in GeV
 
 # items to plot
@@ -128,14 +135,17 @@ for i in range( t_pot.GetEntries() ):
 
 print("The total POT here is: ", potSum)
 
-for e in range(entries):
+for e in range(0,1000): #entries
 
     t.GetEntry(e)
+
+    if (e in veto): 
+        continue
     
     #if (t.run != 14121 or t.subrun != 239 or t.event != 11975):
     #     continue
 
-    print("This is event number: ", e)
+    print("    THIS IS ENTRY NUMBER: ", e)
     print("This is the run number: ", t.run )
     print("This is the subrun number: ", t.subrun )
     print("This is the event number: ", t.event )
@@ -222,6 +232,7 @@ for e in range(entries):
             muons = muons + 1
             
             pxMu = t.truePrimPartPx[i]
+            print(pxMu)
             pyMu = t.truePrimPartPy[i]
             pzMu = t.truePrimPartPz[i]
             energyMu = t.truePrimPartE[i]
@@ -307,6 +318,35 @@ for e in range(entries):
     #print("This is the KE for each proton: ", KEs_P)
     #print("This is the sum of KE for all protons: ", sum(KEs_P))
 
+    print("THESE ARE ALL THE FINAL THINGS: ")
+    print("run: ", t.run)
+    print("subrun: ", t.subrun)
+    print("event: ", t.event)
+    print("pionMom: ", leadingMomPi*1000)
+    print("pionAng: ", leadingAngPi)
+    print("muonMom: ", leadingMomMu*1000)
+    print("muonAng: ", leadingAngMu)
+    print("lProtonMom: ", leadingMomP*1000)
+    print("lProtonAng: ", leadingAngP)
+    print("pxP: ", pxP)
+    print("pyP: ", pyP)
+    print("pzP: ", pzP)
+    print("pxMu: ", pxMu)
+    print("pyMu: ", pyMu)
+    print("pzMu: ", pzMu)
+    print("pxPi: ", pxPi)
+    print("pyPi: ", pyPi)
+    print("pzPi: ", pzPi)
+    print("eP: ", energyP)
+    print("eMu: ", energyMu)
+    print("ePi: ", energyPi)
+    print("eNu: ", t.trueNuE)
+    print("pdgNu: ", t.trueNuPDG)
+    print("modeNu: ", t.trueNuMode)
+    print("intrxnNu: ", t.trueNuIntrxnType)
+    print("weight: ", t.xsecWeight)
+    print("recoNuE_: ", t.recoNuE)
+
     #if (sum(NMomsP) > 0.30) and (sum(KEs_P) > 0.045):  
     print("If got to this point, this means the event wasn't skipped.")
     print("Filling lists...")
@@ -348,7 +388,7 @@ for e in range(entries):
     weights.append( t.xsecWeight )
     weight_[0] = t.xsecWeight
     recoNuE_[0] = t.recoNuE
-    trackPID_[0] = t.trackPID
+    #trackPID_[0] = t.trackPID
     newT.Fill()
 
     #if (sum(NMomsP) > 300) and (sum(KEs_P) > 45): 
@@ -356,6 +396,11 @@ for e in range(entries):
 
     #if pions==1: 
     #    pionEntries.append(e)
+
+print("Final List: ", finalList)
+print("lProtonMom: ", lProtonMom, " with a size of: ", len(lProtonMom)) 
+
+##np.savetxt('finalList_prim_may6.csv', finalList, delimiter=',')
 
 '''
 print("Final List: ", finalList)
@@ -367,7 +412,7 @@ print("lpMom: ", lProtonMom)
 print("lpAng: ", lProtonAng)
 '''
 
-
+'''
 print("Here are the final lists and their sizes (momentum in MeV/c)")
 
 print("lProtonMom: ", lProtonMom, " with a size of: ", len(lProtonMom)) 
@@ -377,6 +422,7 @@ print("pionMom: ", pionMom, " with a size of: ", len(pionMom))
 print("muonAng: ", muonAng, " with a size of: ", len(muonAng)) 
 print("pionAng: ", pionAng, " with a size of: ", len(pionAng)) 
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
+'''
 
 #np.savetxt('ntuple_lProtonMom_011124_2.csv', lProtonMom, delimiter=',')
 #np.savetxt('ntuple_muonMom_011124_2.csv', muonMom, delimiter=',')
