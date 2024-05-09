@@ -10,7 +10,7 @@ t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsSim_050824.root","recreate")
+newF = TFile("selectedEventsSim_050924_recoTest.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -43,6 +43,9 @@ modeNu_ = array('i', [0])
 intrxnNu_ = array('i', [0])
 weight_ = array('d', [0.])
 recoNuE_ = array('d', [0.])
+recoMomPi_ = array('d', [0.])
+recoMomMu_ = array('d', [0.])
+recoMomP_ = array('d', [0.])
 newT.Branch('run_', run_, 'run_/I')
 newT.Branch('subrun_', subrun_, 'subrun_/I')
 newT.Branch('event_', event_, 'event_/I')
@@ -70,6 +73,9 @@ newT.Branch('modeNu_', modeNu_, 'modeNu_/I')
 newT.Branch('intrxnNu_', intrxnNu_, 'intrxnNu_/I')
 newT.Branch('weight_', weight_, 'weight_/D')
 newT.Branch('recoNuE_', recoNuE_, 'recoNuE_/D')
+newT.Branch('recoMomPi_', recoMomPi_, 'recoMomPi_/D')
+newT.Branch('recoMomMu_', recoMomMu_, 'recoMomMu_/D')
+newT.Branch('recoMomP_', recoMomP_, 'recoMomP_/D')
 
 entries = t.GetEntries()
 print("This is how many entries this ntuple file has: ", entries)
@@ -91,6 +97,16 @@ def momAngleCalc(px, py, pz): # assumes wrt beam, which is (0, 0, 1)
     mag = np.sqrt( px**2 + py**2 + pz**2 )
     cosTheta = pz / mag 
     return mag, cosTheta
+
+# masses in MeV
+muMass = 105.66
+piMass = 139.6
+pMass = 938.28
+
+# grab momentum from KE in reco
+def recoMomCalc(recoE, mass):
+    p = recoE + mass
+    return np.sqrt( p**2 - m**2 ) / 1000 # conversion from MeV to GeV
 
 potSum = 0.
 for i in range( t_pot.GetEntries() ):
@@ -121,6 +137,8 @@ for e in range(entries): #entries
     print("There are ", n, " sim clusters in this event.")
     print("There are ", m, " prim clusters in this event.")
 
+    nn = t.nTracks # how many reco tracks are in the event?
+
     flag = 0
     pions = 0
     muons = 0
@@ -135,6 +153,10 @@ for e in range(entries): #entries
 
     leadingMomPi = -999
     leadingAngPi = -999
+
+    pTID = -999
+    piTID = -999
+    muTID = -999
 
     # number of particles above threshold
     protonsN = 0 
@@ -168,7 +190,7 @@ for e in range(entries): #entries
             break
     '''
 
-    # loop through clusters in event
+    # loop through truth clusters in event
     for i in range(n):
 
         #if (t.trueSimPartProcess[i] == 1 and pdg == 22): 
@@ -199,6 +221,7 @@ for e in range(entries): #entries
         if (pdg == 211 or pdg == -211): 
             print("Found pion.")
             pions = pions + 1
+            piTID = t.trueSimPartTID[i]
 
             if (pions > 1):
                 print("More than 1 pion! Skipping event.")
@@ -230,6 +253,7 @@ for e in range(entries): #entries
         if (pdg == 13): # mu 
             print("Found muon.")
             muons = muons + 1
+            muTID = t.trueSimPartTID[i]
             
             pxMu = t.trueSimPartPx[i]
             print(pxMu)
@@ -279,6 +303,8 @@ for e in range(entries): #entries
                     leadingMomP = momP
                     leadingAngP = angP 
 
+                    pTID = t.trueSimPartTID[i]
+
             else: 
                 print("NO. The p mom was ", momP, "which is either < 0.3 GeV or > 1 GeV")
 
@@ -318,6 +344,49 @@ for e in range(entries): #entries
 
     #if (sum(NMomsP) > 0.30) and (sum(KEs_P) > 0.045):  
     print("If got to this point, this means the event wasn't skipped.")
+
+    print("The TIDs were (piTID, muTID, pTID): ", piTID, ", ", muTID, ", ", pTID)
+
+    recoMomPi = -1.0
+    recoMomMu = -1.0
+    recoMomP = -1.0
+
+    # now look at the reco info
+    for k in range(nn):
+
+        recoTID = t.trackTrueTID[k]
+        print("This is the reco'd TID!", recoTID)
+
+        # reco'd pion information
+        if (recoTID == piTID): 
+            recoPiPID = t.trackPID[k]
+            recoPiE = t.trackRecoE[k] # kinetic energy
+            print("Reco Track PID: ", recoPiPID)
+            print("Reco energy: ", recoPiE)
+            if (recoPiE > 0): 
+                recoMomPi = recoMomCalc(recoPiE, piMass)
+            print("This is the reco'd mom in GeV: ", recoMomPi)
+
+        # reco'd muon information
+        if (recoTID == muTID): 
+            recoMuPID = t.trackPID[k]
+            recoMuE = t.trackRecoE[k] # kinetic energy
+            print("Reco Track PID: ", recoMuPID)
+            print("Reco energy: ", recoMuE)
+            if (recoMuE > 0): 
+                recoMomMu = recoMomCalc(recoMuE, muMass)
+            print("This is the reco'd mom in GeV: ", recoMomMu)
+
+        # reco'd leading proton information
+        if (recoTID == pTID): 
+            recopPID = t.trackPID[k]
+            recopE = t.trackRecoE[k] # kinetic energy
+            print("Reco Track PID: ", recopPID)
+            print("Reco energy: ", recopE)
+            if (recopE > 0): 
+                recoMomP = recoMomCalc(recopE, pMass)
+            print("This is the reco'd mom in GeV: ", recoMomP)
+        
 
     print("THESE ARE ALL THE FINAL THINGS: ")
     print("run: ", t.run)
@@ -379,6 +448,9 @@ for e in range(entries): #entries
     intrxnNu_[0] = t.trueNuIntrxnType
     weight_[0] = t.xsecWeight
     recoNuE_[0] = t.recoNuE
+    recoMomPi_[0] = recoMomPi
+    recoMomMu_[0] = recoMomMu
+    recoMomP_[0] = recoMomP
     newT.Fill()
 
 print("Done!")
