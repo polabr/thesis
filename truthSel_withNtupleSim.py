@@ -10,7 +10,7 @@ t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsSim_050924_recoTest.root","recreate")
+newF = TFile("selectedEventsSim_062724.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -106,7 +106,8 @@ pMass = 938.28
 # grab momentum from KE in reco
 def recoMomCalc(recoE, mass):
     p = recoE + mass
-    return np.sqrt( p**2 - m**2 ) / 1000 # conversion from MeV to GeV
+    return np.sqrt( p**2 - mass**2 )
+    ####return np.sqrt( p**2 - mass**2 ) / 1000. # conversion from MeV to GeV
 
 potSum = 0.
 for i in range( t_pot.GetEntries() ):
@@ -116,7 +117,7 @@ for i in range( t_pot.GetEntries() ):
 
 print("The total POT here is: ", potSum)
 
-for e in range(entries): #entries
+for e in range(1000): #entries
 
     t.GetEntry(e)
 
@@ -233,7 +234,7 @@ for e in range(entries): #entries
             pzPi = t.trueSimPartPz[i]
             energyPi = t.trueSimPartE[i]
             momPi, angPi = momAngleCalc( pxPi, pyPi, pzPi )
-            momPi = momPi / 1000 # convert from MeV to GeV
+            momPi = momPi / 1000. # convert from MeV to GeV
             print("Mom Pi is: ", momPi)
             print("Ang Pi is: ", angPi)
 
@@ -261,7 +262,7 @@ for e in range(entries): #entries
             pzMu = t.trueSimPartPz[i]
             energyMu = t.trueSimPartE[i]
             momMu, angMu = momAngleCalc( pxMu, pyMu, pzMu )
-            momMu = momMu / 1000 # convert from MeV to GeV
+            momMu = momMu / 1000. # convert from MeV to GeV
             print("Mom Mu is: ", momMu)
             print("Ang Mu is: ", angMu)
 
@@ -286,7 +287,7 @@ for e in range(entries): #entries
             pzP = t.trueSimPartPz[i]
             energyP = t.trueSimPartE[i]
             momP, angP = momAngleCalc( pxP, pyP, pzP )
-            momP = momP / 1000 # convert from MeV to GeV
+            momP = momP / 1000. # convert from MeV to GeV
             print("Mom P is: ", momP)
             print("Ang P is: ", angP)
 
@@ -388,34 +389,41 @@ for e in range(entries): #entries
             print("This is the reco'd mom in GeV: ", recoMomP)
         
 
-    print("THESE ARE ALL THE FINAL THINGS: ")
-    print("run: ", t.run)
-    print("subrun: ", t.subrun)
-    print("event: ", t.event)
-    print("pionMom: ", leadingMomPi*1000)
-    print("pionAng: ", leadingAngPi)
-    print("muonMom: ", leadingMomMu*1000)
-    print("muonAng: ", leadingAngMu)
-    print("lProtonMom: ", leadingMomP*1000)
-    print("lProtonAng: ", leadingAngP)
-    print("pxP: ", pxP/1000)
-    print("pyP: ", pyP/1000)
-    print("pzP: ", pzP/1000)
-    print("pxMu: ", pxMu/1000)
-    print("pyMu: ", pyMu/1000)
-    print("pzMu: ", pzMu/1000)
-    print("pxPi: ", pxPi/1000)
-    print("pyPi: ", pyPi/1000)
-    print("pzPi: ", pzPi/1000)
-    print("eP: ", energyP/1000)
-    print("eMu: ", energyMu/1000)
-    print("ePi: ", energyPi/1000)
-    print("eNu: ", t.trueNuE)
-    print("pdgNu: ", t.trueNuPDG)
-    print("modeNu: ", t.trueNuMode)
-    print("intrxnNu: ", t.trueNuIntrxnType)
-    print("weight: ", t.xsecWeight)
-    print("recoNuE_: ", t.recoNuE)
+    if (recoMomPi != -1) and (recoMomMu != -1) and (recoMomP != -1): 
+        print("THESE ARE ALL THE FINAL THINGS: ")
+        print("run: ", t.run)
+        print("subrun: ", t.subrun)
+        print("event: ", t.event)
+        print("truth pionMom: ", leadingMomPi*1000.)
+        print("truth pionAng: ", leadingAngPi)
+        print("truth muonMom: ", leadingMomMu*1000.)
+        print("muonAng: ", leadingAngMu)
+        print("lProtonMom: ", leadingMomP*1000.)
+        print("lProtonAng: ", leadingAngP)
+        print("pxP: ", pxP/1000.)
+        print("pyP: ", pyP/1000.)
+        print("pzP: ", pzP/1000.)
+        print("pxMu: ", pxMu/1000.)
+        print("pyMu: ", pyMu/1000.)
+        print("pzMu: ", pzMu/1000.)
+        print("pxPi: ", pxPi/1000.)
+        print("pyPi: ", pyPi/1000.)
+        print("pzPi: ", pzPi/1000.)
+        print("eP: ", energyP/1000.)
+        print("eMu: ", energyMu/1000.)
+        print("ePi: ", energyPi/1000.)
+        print("eNu: ", t.trueNuE)
+        print("pdgNu: ", t.trueNuPDG)
+        print("modeNu: ", t.trueNuMode)
+        print("intrxnNu: ", t.trueNuIntrxnType)
+        print("weight: ", t.xsecWeight)
+        print("recoNuE_: ", t.recoNuE)
+        print("trackRecoPi: ", recoPiE)
+        print("trackRecoMu: ", recoMuE)
+        print("trackRecoP: ", recopE)
+        print("recoMomPi: ", recoMomPi)
+        print("recoMomMu: ", recoMomMu)
+        print("recoMomP: ", recoMomP)
 
 
     print("Filling lists...")
@@ -423,25 +431,25 @@ for e in range(entries): #entries
     run_[0] = t.run
     subrun_[0] = t.subrun
     event_[0] = t.event
-    pionMom_[0] = leadingMomPi*1000
+    pionMom_[0] = leadingMomPi*1000.
     pionAng_[0] = leadingAngPi
-    muonMom_[0] = leadingMomMu*1000
+    muonMom_[0] = leadingMomMu*1000.
     muonAng_[0] = leadingAngMu
-    lProtonMom_[0] = leadingMomP*1000
+    lProtonMom_[0] = leadingMomP*1000.
     lProtonAng.append ( leadingAngP )
     lProtonAng_[0] = leadingAngP
-    pxP_[0] = pxP/1000
-    pyP_[0] = pyP/1000
-    pzP_[0] = pzP/1000
-    pxMu_[0] = pxMu/1000
-    pyMu_[0] = pyMu/1000
-    pzMu_[0] = pzMu/1000
-    pxPi_[0] = pxPi/1000
-    pyPi_[0] = pyPi/1000
-    pzPi_[0] = pzPi/1000
-    eP_[0] = energyP/1000
-    eMu_[0] = energyMu/1000
-    ePi_[0] = energyPi/1000
+    pxP_[0] = pxP/1000.
+    pyP_[0] = pyP/1000.
+    pzP_[0] = pzP/1000.
+    pxMu_[0] = pxMu/1000.
+    pyMu_[0] = pyMu/1000.
+    pzMu_[0] = pzMu/1000.
+    pxPi_[0] = pxPi/1000.
+    pyPi_[0] = pyPi/1000.
+    pzPi_[0] = pzPi/1000.
+    eP_[0] = energyP/1000.
+    eMu_[0] = energyMu/1000.
+    ePi_[0] = energyPi/1000.
     eNu_[0] = t.trueNuE
     pdgNu_[0] = t.trueNuPDG
     modeNu_[0] = t.trueNuMode
@@ -457,7 +465,7 @@ print("Done!")
 print("Final List: ", finalList)
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-np.savetxt('finalList_sim_may7.csv', finalList, delimiter=',')
+np.savetxt('finalList_sim_may21.csv', finalList, delimiter=',')
 
 newF.Write()
 newF.Close()
