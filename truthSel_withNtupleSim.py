@@ -1,16 +1,21 @@
+# 
+# This script implements the truth selection, 
+# then track-ID matches the assocuated reco tracks. 
+#
 import ROOT 
 from ROOT import TFile, TTree
 
 import numpy as np
 from array import array
 
-f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/reco_v2me05_gen2ntuple_bnb_nu_overlay_run3_v6.root","READ")
+f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
+#f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/reco_v2me05_gen2ntuple_bnb_nu_overlay_run3_v6.root","READ")
 
 t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsSim_062724.root","recreate")
+newF = TFile("selectedEventsSim_v2me06_071524_withContainedVar.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -39,10 +44,11 @@ eMu_ = array('d', [0.])
 ePi_ = array('d', [0.])
 eNu_ = array('d', [0.])
 pdgNu_ = array('i', [0])
-modeNu_ = array('i', [0])
-intrxnNu_ = array('i', [0])
+#modeNu_ = array('i', [0])
+#intrxnNu_ = array('i', [0])
 weight_ = array('d', [0.])
 recoNuE_ = array('d', [0.])
+recoContained_ = array('i', [0])
 recoMomPi_ = array('d', [0.])
 recoMomMu_ = array('d', [0.])
 recoMomP_ = array('d', [0.])
@@ -69,16 +75,18 @@ newT.Branch('eMu_', eMu_, 'eMu_/D')
 newT.Branch('ePi_', ePi_, 'ePi_/D')
 newT.Branch('eNu_', eNu_, 'eNu_/D')
 newT.Branch('pdgNu_', pdgNu_, 'pdgNu_/I')
-newT.Branch('modeNu_', modeNu_, 'modeNu_/I')
-newT.Branch('intrxnNu_', intrxnNu_, 'intrxnNu_/I')
+#newT.Branch('modeNu_', modeNu_, 'modeNu_/I')
+#newT.Branch('intrxnNu_', intrxnNu_, 'intrxnNu_/I')
 newT.Branch('weight_', weight_, 'weight_/D')
 newT.Branch('recoNuE_', recoNuE_, 'recoNuE_/D')
+newT.Branch('recoContained_', recoContained_, 'recoContained_/I')
 newT.Branch('recoMomPi_', recoMomPi_, 'recoMomPi_/D')
 newT.Branch('recoMomMu_', recoMomMu_, 'recoMomMu_/D')
 newT.Branch('recoMomP_', recoMomP_, 'recoMomP_/D')
 
 entries = t.GetEntries()
 print("This is how many entries this ntuple file has: ", entries)
+
 
 newF.cd()
 
@@ -117,7 +125,7 @@ for i in range( t_pot.GetEntries() ):
 
 print("The total POT here is: ", potSum)
 
-for e in range(1000): #entries
+for e in range(entries): #entries
 
     t.GetEntry(e)
 
@@ -414,10 +422,11 @@ for e in range(1000): #entries
         print("ePi: ", energyPi/1000.)
         print("eNu: ", t.trueNuE)
         print("pdgNu: ", t.trueNuPDG)
-        print("modeNu: ", t.trueNuMode)
-        print("intrxnNu: ", t.trueNuIntrxnType)
+        #print("modeNu: ", t.trueNuMode)
+        #print("intrxnNu: ", t.trueNuIntrxnType)
         print("weight: ", t.xsecWeight)
         print("recoNuE_: ", t.recoNuE)
+        print("recoContained_: ", t.vtxContainment)
         print("trackRecoPi: ", recoPiE)
         print("trackRecoMu: ", recoMuE)
         print("trackRecoP: ", recopE)
@@ -452,10 +461,11 @@ for e in range(1000): #entries
     ePi_[0] = energyPi/1000.
     eNu_[0] = t.trueNuE
     pdgNu_[0] = t.trueNuPDG
-    modeNu_[0] = t.trueNuMode
-    intrxnNu_[0] = t.trueNuIntrxnType
+    #modeNu_[0] = t.trueNuMode
+    #intrxnNu_[0] = t.trueNuIntrxnType
     weight_[0] = t.xsecWeight
     recoNuE_[0] = t.recoNuE
+    recoContained_[0] = t.vtxContainment
     recoMomPi_[0] = recoMomPi
     recoMomMu_[0] = recoMomMu
     recoMomP_[0] = recoMomP
@@ -465,7 +475,7 @@ print("Done!")
 print("Final List: ", finalList)
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-np.savetxt('finalList_sim_may21.csv', finalList, delimiter=',')
+#np.savetxt('finalList_sim_may21.csv', finalList, delimiter=',')
 
 newF.Write()
 newF.Close()

@@ -1,3 +1,6 @@
+#
+# OLD, DO NOT USE!! (Use truthSel_withNtupleSim.py for the truth selection)
+#
 import ROOT 
 from ROOT import TFile, TTree, gDirectory, TCanvas, TH1D, TColor, TGraphErrors, TMath, TLatex
 from ROOT import TH2D
