@@ -1,13 +1,13 @@
 # 
 # This script implements the reco selection.
 #
-#
 
 import ROOT 
 from ROOT import TFile, TTree
 
 import numpy as np
 from array import array
+import selModule
 
 f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
 
@@ -15,7 +15,7 @@ t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsReco_v2me06_072924_withTruth.root","recreate")
+newF = TFile("selectedEventsReco_v2me06_072924_withTruth_testModular.root","recreate")
 newT = TTree("selectedEvents", "Selected Events Tree") # make this file have a TTree
 
 run_ = array('i', [0])
@@ -87,6 +87,7 @@ print("This is how many entries this ntuple file has: ", entries)
 newF.cd()
 
 finalList = []
+passedModule = []
 
 # masses in MeV
 muMass = 105.66
@@ -127,6 +128,12 @@ for e in range(entries): #entries
     print("This is the subrun number: ", t.subrun )
     print("This is the event number: ", t.event )
 
+    outModule = selModule.recoSel(t)
+    if (outModule == True): 
+        passedModule.append(e)
+
+    print( selModule.recoSel(t) )
+
     if (t.foundVertex != 1): 
         print("No vtx found. Skipping...")
         continue
@@ -142,14 +149,21 @@ for e in range(entries): #entries
         continue
 
     s = t.nShowers
-
+    primaryExists = 0
     twoSecPhoCount = 0
 
+    # loop through all showers
+    # to check if any are primary. if so, skip
     for i in range(s): 
-        if (t.showerProcess[i] == 0): continue # skip all primary showers
+        if (t.showerProcess[i] == 0): 
+            print("There is a primary shower. Skipping...")
+            primaryExists = 1
+            break # skip all primary showers
         #if (t.showerProcess[i] == 1) and (t.showerPID==22): 
         #   print("Secondary photon found.")
         #   twoSecPhoCount = twoSecPhoCount + 1
+        
+    if (primaryExists == 1): continue
 
     if (twoSecPhoCount > 1): continue
 
@@ -187,6 +201,8 @@ for e in range(entries): #entries
         
     # loop through tracks
     for i in range(n):
+
+        print("This is track #", i)
 
         # first check if it's a primary (code of 0)
         if (t.trackIsSecondary[i] != 0): 
@@ -301,6 +317,10 @@ for e in range(entries): #entries
                 print("NO. The p mom was ", recoMomP, "which is either < 0.3 GeV or > 1 GeV")
 
 
+    if (flag == 1): 
+        print("Flag == 1, meaning something didn't meet requirements. Skip event.")
+        continue
+    
     # require 
     if ( pionsN == 0 ): 
         print("Zero pions above threshold. Skip to next event.")
@@ -394,6 +414,17 @@ for e in range(entries): #entries
 
 print("Done!")
 
+np.savetxt('finalList_reco_091524.csv', finalList, delimiter=',')
+
 newF.Write()
 newF.Close()
+
+print("finalList = ", finalList)
+print("passedModule = ", passedModule)
+
+print("This is how many were in finalList but NOT passedModule:")
+print( list(set(finalList) - set(passedModule)) )
+
+print("This is how many were in passedModule but NOT finalList:")
+print( list(set(passedModule) - set(finalList)) )
 
