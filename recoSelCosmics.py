@@ -1,6 +1,5 @@
-# This script loops through the events in the ntuple
-# and tracks if they passed the truth selection, reco, or both. 
-#
+# This script was edited to run my reco selection on cosmics.
+# There is no truth information because this is EXTBNB
 
 import ROOT 
 from ROOT import TFile, TTree
@@ -9,13 +8,14 @@ import numpy as np
 from array import array
 import selModule
 
-f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
+f = TFile("dlgen2_reco_v2me06_ntuple_v5_mcc9_v29e_dl_run1_extbnb_combined.root","READ")
+#f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
 
 t = f.Get("EventTree")
-t_pot = f.Get("potTree")
+##t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsTrueRecoBoth_vtxOnly_121824.root","recreate")
+newF = TFile("selectedEventsTrueRecoBoth_cosmics_vtxOnly_121824_2.root","recreate")
 newT = TTree("selectedEvents", "Selected Events Tree") 
 
 passedSel_ = array('i', [0]) # 1 if passed truth, 2 if reco, 3 if both
@@ -41,16 +41,6 @@ truthSel_eNu_ = array('d', [0.])
 truthSel_eP_ = array('d', [0.])
 truthSel_eMu_ = array('d', [0.])
 truthSel_ePi_ = array('d', [0.])
-
-truthSel_truthContainedMu_ = array('i', [0])
-truthSel_truthContainedPi_ = array('i', [0])
-truthSel_truthContainedLP_ = array('i', [0])
-truthSel_truthContainedAll_ = array('i', [0]) # all 3 prongs contained
-
-truthSel_delPTT_ = array('d', [0.])
-truthSel_pN_ = array('d', [0.])
-truthSel_delAlphaT_ = array('d', [0.])
-
 '''
 lProtonAng_ = array('d', [0.])
 pionAng_ = array('d', [0.])
@@ -84,10 +74,6 @@ recoSel_eP_ = array('d', [0.])
 recoSel_ePi_ = array('d', [0.])
 recoSel_eMu_ = array('d', [0.])
 
-recoSel_delPTT_ = array('d', [0.])
-recoSel_pN_ = array('d', [0.])
-recoSel_delAlphaT_ = array('d', [0.])
-
 newT.Branch('passedSel_', passedSel_, 'passedSel_/I')
 newT.Branch('run_', run_, 'run_/I')
 newT.Branch('subrun_', subrun_, 'subrun_/I')
@@ -110,16 +96,6 @@ newT.Branch('truthSel_eNu_', truthSel_eNu_, 'truthSel_eNu_/D')
 newT.Branch('truthSel_eP_', truthSel_eP_, 'truthSel_eP_/D')
 newT.Branch('truthSel_eMu_', truthSel_eMu_, 'truthSel_eMu_/D')
 newT.Branch('truthSel_ePi_', truthSel_ePi_, 'truthSel_ePi_/D')
-
-newT.Branch('truthSel_truthContainedMu_', truthSel_truthContainedMu_, 'truthSel_truthContainedMu_/I')
-newT.Branch('truthSel_truthContainedPi_', truthSel_truthContainedPi_, 'truthSel_truthContainedPi_/I')
-newT.Branch('truthSel_truthContainedLP_', truthSel_truthContainedLP_, 'truthSel_truthContainedLP_/I')
-newT.Branch('truthSel_truthContainedAll_', truthSel_truthContainedAll_, 'truthSel_truthContainedAll_/I')
-
-newT.Branch('truthSel_delPTT_', truthSel_delPTT_, 'truthSel_delPTT_/D')
-newT.Branch('truthSel_pN_', truthSel_pN_, 'truthSel_pN_/D')
-newT.Branch('truthSel_delAlphaT_', truthSel_delAlphaT_, 'truthSel_delAlphaT_/D')
-
 '''
 newT.Branch('lProtonAng_', lProtonAng_, 'lProtonAng_/D')
 newT.Branch('pionAng_', pionAng_, 'pionAng_/D')
@@ -152,10 +128,6 @@ newT.Branch('recoSel_eP_', recoSel_eP_, 'recoSel_eP_/D')
 newT.Branch('recoSel_ePi_', recoSel_ePi_, 'recoSel_ePi_/D')
 newT.Branch('recoSel_eMu_', recoSel_eMu_, 'recoSel_eMu_/D')
 
-newT.Branch('recoSel_delPTT_', recoSel_delPTT_, 'recoSel_delPTT_/D')
-newT.Branch('recoSel_pN_', recoSel_pN_, 'recoSel_pN_/D')
-newT.Branch('recoSel_delAlphaT_', recoSel_delAlphaT_, 'recoSel_delAlphaT_/D')
-
 
 
 entries = t.GetEntries()
@@ -167,13 +139,13 @@ finalList_truth = []
 finalList_reco = []
 finalList_both = []
 
-
+'''
 # events I am vetoing for now
 veto = np.loadtxt("allDiff.txt", dtype=float) 
 veto = veto.astype(np.int64)
 print("Veto'd events: ", veto) 
 print("How many events?", veto.shape)
-
+'''
 
 # masses in MeV
 muMass = 105.66
@@ -191,7 +163,7 @@ def truthMomAngleCalc(px, py, pz): # assumes wrt beam, which is (0, 0, 1)
     cosTheta = pz / mag 
     return mag, cosTheta
 
-
+'''
 potSum = 0.
 for i in range( t_pot.GetEntries() ):
     t_pot.GetEntry(i)
@@ -199,7 +171,7 @@ for i in range( t_pot.GetEntries() ):
     potSum = potSum + t_pot.totGoodPOT
 
 print("The total POT here is: ", potSum)
-
+'''
 
 ######################## 
 #  LOOP THRU NTUPLES!  #
@@ -209,6 +181,8 @@ for e in range(entries): #entries
 
     t.GetEntry(e)
 
+    #cosmicPassed = 0
+
     print("-----------------------------------------")
 
     print("   THIS IS ENTRY NUMBER: ", e)
@@ -217,21 +191,28 @@ for e in range(entries): #entries
     print("This is the subrun number: ", t.subrun )
     print("This is the event number: ", t.event )
 
-    
+    '''
     if (e in veto):  
         print("This entry is in the veto list!")
         continue
-    
+    '''
 
+    # setting this to 0 by default
     passedSel = 0
 
+    '''
     if (selModule.truthSel(t) == True): 
-        if (selModule.recoSelVtxOnly(t) == True): 
+        if (selModule.recoSel(t) == True): 
             passedSel = 3 # passed both truth and reco selection
         else: 
             passedSel = 1 # only passed truth selection
-    elif (selModule.recoSelVtxOnly(t) == True):
+    elif (selModule.recoSel(t) == True):
         passedSel = 2 # only passed reco selection
+    '''
+
+    # note that with EXTBNB, there is no truth info, so can't run truth selection
+    if (selModule.recoSelVtxOnly(t) == True):
+        passedSel = 2 # passed reco selection
 
     # skip event and don't fill if passed neither truth nor reco sel
     if (passedSel == 0): continue
@@ -270,19 +251,10 @@ for e in range(entries): #entries
     truthSel_trkDirPiY = -999
     truthSel_trkDirPiZ = -999
 
-    truthSel_eNu = -999
+    truthSel_nuE = -999
     truthSel_eMu = -999
     truthSel_ePi = -999
     truthSel_eP = -999
-
-    truthSel_truthContainedMu = -999
-    truthSel_truthContainedPi = -999
-    truthSel_truthContainedLP = -999
-    truthSel_truthContainedAll = -999
-
-    truthSel_delPTT = -999
-    truthSel_pN = -999
-    truthSel_delAlphaT = -999
 
     recoSel_recoNuE = -999
     recoSel_recoContained = -999
@@ -308,10 +280,6 @@ for e in range(entries): #entries
     recoSel_ePi = -999
     recoSel_eMu = -999
 
-    recoSel_delPTT = -999
-    recoSel_pN = -999
-    recoSel_delAlphaT = -999
-
     pTID = -999
     piTID = -999
     muTID = -999
@@ -326,12 +294,10 @@ for e in range(entries): #entries
     recosel_muonsN = 0
     recosel_pionsN = 0
 
+    '''
     ## TRUTH CLUSTER LOOP ##
     if (passedSel == 1) or (passedSel == 3):
-
         m = t.nTrueSimParts # how many truth clusters are in the event?
-
-        # loop through all truth tracks in the event to grab relevant truth info
         for i in range(m):
 
             if (t.trueSimPartProcess[i] != 0): 
@@ -358,13 +324,11 @@ for e in range(entries): #entries
                     truthSel_truthPionMom = momPi
                     truthsel_leadingAngPi = angPi
 
-                    truthSel_trkDirPiX = pxPi/1000. # GeV
-                    truthSel_trkDirPiY = pyPi/1000. # GeV
-                    truthSel_trkDirPiZ = pzPi/1000. # GeV
+                    truthSel_trkDirPiX = pxPi
+                    truthSel_trkDirPiY = pyPi
+                    truthSel_trkDirPiZ = pzPi
 
-                    truthSel_ePi = energyPi/1000. # GeV
-
-                    truthSel_truthContainedPi = t.trueSimPartContained[i] 
+                    truthSel_ePi = energyPi
 
             # Looking at truthsel_muons
             if (pdg == 13): # mu
@@ -385,13 +349,11 @@ for e in range(entries): #entries
                     truthSel_truthMuonMom = momMu # GeV
                     truthsel_leadingAngMu = angMu
 
-                    truthSel_trkDirMuX = pxMu/1000. # GeV
-                    truthSel_trkDirMuY = pyMu/1000. # GeV
-                    truthSel_trkDirMuZ = pzMu/1000. # GeV
+                    truthSel_trkDirMuX = pxMu # MeV
+                    truthSel_trkDirMuY = pyMu # MeV
+                    truthSel_trkDirMuZ = pzMu # MeV
 
-                    truthSel_eMu = energyMu/1000. # GeV
-
-                    truthSel_truthContainedMu = t.trueSimPartContained[i] 
+                    truthSel_eMu = energyMu # MeV
 
             # Now look at truthsel_protons
             if (pdg == 2212):
@@ -415,200 +377,184 @@ for e in range(entries): #entries
                         truthSel_truthLProtonMom = momP
                         truthsel_leadingAngP = angP 
 
-                        truthSel_trkDirPX = pxP/1000. # GeV
-                        truthSel_trkDirPY = pyP/1000. # GeV
-                        truthSel_trkDirPZ = pzP/1000. # GeV
+                        truthSel_trkDirPX = pxP
+                        truthSel_trkDirPY = pyP
+                        truthSel_trkDirPZ = pzP
 
-                        truthSel_eP = energyP/1000. # GeV
+                        truthSel_eP = energyP
 
                         pTID = t.trueSimPartTID[i]
 
-                        truthSel_truthContainedLP = t.trueSimPartContained[i] 
+        print("In this event, there were ", truthsel_protons, " number of primary truthsel_protons.")
+        print("And ", truthsel_protonsN, " truthsel_protons were above threshold.")
 
-        # done with looping through tracks
-        # grab event level info for events that passed truth selection 
-        truthSel_eNu = t.trueNuE # already in GeV in ntuple?
+        print("In this event, there were ", truthsel_muons, " number of primary truthsel_muons.")
+        print("And ", truthsel_muonsN, " truthsel_muons were above threshold.")
 
-        # grab TKI related info for truth TKI
-        pPi = np.array([truthSel_trkDirPiX, truthSel_trkDirPiY, truthSel_trkDirPiZ])
-        pP = np.array([truthSel_trkDirPX, truthSel_trkDirPY, truthSel_trkDirPZ])
-    
-        z = selModule.getTransverseAxis(truthSel_eNu, truthSel_trkDirMuX, truthSel_trkDirMuY, truthSel_trkDirMuZ)
+        print("In this event, there were ", truthsel_pions, " number of primary truthsel_pions.")
+        print("And ", truthsel_pionsN, " truthsel_pions were above threshold.")
 
-        truthSel_delPTT = selModule.delPTT(z, pPi, pP)
+        print("If got to this point, this means the event wasn't skipped.")
 
-        truthSel_delPT = selModule.delPT(truthSel_trkDirPiX, truthSel_trkDirPX, truthSel_trkDirMuX, truthSel_trkDirPiY, truthSel_trkDirPY, truthSel_trkDirMuY)
+        print("The TIDs were (piTID, muTID, pTID): ", piTID, ", ", muTID, ", ", pTID)
+    '''
 
-        truthSel_pL = selModule.pL(truthSel_trkDirPZ, truthSel_trkDirMuZ, truthSel_trkDirPiZ, truthSel_eP, truthSel_eMu, truthSel_ePi, truthSel_delPT)
-        truthSel_pLGKI = selModule.pLGKI(truthSel_trkDirPZ, truthSel_trkDirMuZ, truthSel_trkDirPiZ, truthSel_eP, truthSel_eMu, truthSel_ePi)
+    # ## RECO CLUSTER LOOP ##
+    # #if (passedSel == 2) or (passedSel == 3):
+    # if (passedSel == 2) or (passedSel == 3):
 
-        truthSel_pN = np.sqrt( np.dot(truthSel_delPT, truthSel_delPT) + np.dot(truthSel_pL, truthSel_pL) )
-        truthSel_pNGKI = np.sqrt( np.dot(truthSel_delPT, truthSel_delPT) + np.dot(truthSel_pLGKI, truthSel_pLGKI) )
+    #     n = t.nTracks
 
-        truthSel_delAlphaT = selModule.delAlphaT(truthSel_trkDirMuX, truthSel_trkDirMuY, truthSel_delPT) 
-        
-
-
-    ## RECO CLUSTER LOOP ##
-    # grab relevant info from events we know passed the reco sel
-    if (passedSel == 2) or (passedSel == 3): # event passed the reco selection
-
-        n = t.nTracks
-
-        # loop through reco tracks
-        for i in range(n):
+    #     for i in range(n):
             
-            print("This is track #", i)
+    #         print("This is track #", i)
 
-            # first check if it's a primary (code of 0)
-            if (t.trackIsSecondary[i] != 0): 
-                print("Not a primary! Its code is not 0. It is: ", t.trackIsSecondary[i])
-                continue
-            else:
-                print("Yup, it's a primary! It is: ", t.trackIsSecondary[i])
+    #         # first check if it's a primary (code of 0)
+    #         if (t.trackIsSecondary[i] != 0): 
+    #             print("Not a primary! Its code is not 0. It is: ", t.trackIsSecondary[i])
+    #             continue
+    #         else:
+    #             print("Yup, it's a primary! It is: ", t.trackIsSecondary[i])
 
-            # does LArPID think it's a primary?
-            if (t.trackProcess[i] != 0): 
-                print("Not a primary according to LArPID! Its code is not 0. It is: ", t.trackProcess[i])
-                continue
-            else:
-                print("Yup, it's a primary according to LArPID too. Code: ", t.trackProcess[i])
+    #         # does LArPID think it's a primary?
+    #         if (t.trackProcess[i] != 0): 
+    #             print("Not a primary according to LArPID! Its code is not 0. It is: ", t.trackProcess[i])
+    #             continue
+    #         else:
+    #             print("Yup, it's a primary according to LArPID too. Code: ", t.trackProcess[i])
 
-            # LArPID PDG score
-            if (t.trackClassified[i] != 1):
-                print("Not classified! Its code is not 1. It is: ", t.trackClassified[i])
-                continue
-            else: 
-                print("Yep, it was classified!")
-                pdg = t.trackPID[i]
-                print("Its LArPID predicted PDG score is: ", pdg)
+    #         # LArPID PDG score
+    #         if (t.trackClassified[i] != 1):
+    #             print("Not classified! Its code is not 1. It is: ", t.trackClassified[i])
+    #             continue
+    #         else: 
+    #             print("Yep, it was classified!")
+    #             pdg = t.trackPID[i]
+    #             print("Its LArPID predicted PDG score is: ", pdg)
 
-            #recoTID = t.trackTrueTID[i]
+    #         #recoTID = t.trackTrueTID[i]
 
-            # Looking at pions
-            if (pdg == 211 or pdg == -211): 
+    #         # # Looking at pions
+    #         # if (pdg == 211 or pdg == -211): 
 
-                print("Found pion.")
-                recosel_pions = recosel_pions + 1
+    #         #     print("Found pion.")
+    #         #     recosel_pions = recosel_pions + 1
 
-                recoPiE = t.trackRecoE[i] # in MeV
-                print("recoPiE: ", recoPiE)
-                if (recoPiE > 0): 
-                    recoMomPi = recoMomCalc(recoPiE, piMass) # now in GeV
+    #         #     recoPiE = t.trackRecoE[i] # in MeV
+    #         #     print("recoPiE: ", recoPiE)
+    #         #     if (recoPiE > 0): 
+    #         #         recoMomPi = recoMomCalc(recoPiE, piMass) # now in GeV
 
-                print("Does this pion have at least momentum 70 MeV/c (0.07 GeV/c)?")
-                print("recoMomPi: ", recoMomPi)
-                if (recoMomPi > 0.07):
-                    print("Pi mom is > 0.07 GeV/c. It is: ", recoMomPi, " GeV/c. Incrementing number of N recosel_pions.")
-                    recosel_pionsN = recosel_pionsN + 1
-                    recoSel_recoMomPi = recoMomPi
+    #         #     print("Does this pion have at least momentum 70 MeV/c (0.07 GeV/c)?")
+    #         #     print("recoMomPi: ", recoMomPi)
+    #         #     if (recoMomPi > 0.07):
+    #         #         print("Pi mom is > 0.07 GeV/c. It is: ", recoMomPi, " GeV/c. Incrementing number of N recosel_pions.")
+    #         #         recosel_pionsN = recosel_pionsN + 1
+    #         #         recoSel_recoMomPi = recoMomPi
 
-                    recoSel_trkDirPiX = t.trackStartDirX[i]*recoMomPi
-                    recoSel_trkDirPiY = t.trackStartDirY[i]*recoMomPi
-                    recoSel_trkDirPiZ = t.trackStartDirZ[i]*recoMomPi
+    #         #         recoSel_trkDirPiX = t.trackStartDirX[i]*recoMomPi
+    #         #         recoSel_trkDirPiY = t.trackStartDirY[i]*recoMomPi
+    #         #         recoSel_trkDirPiZ = t.trackStartDirZ[i]*recoMomPi
 
-                    recoSel_trackCompPi = t.trackComp[i]
+    #         #         recoSel_trackCompPi = t.trackComp[i]
 
-                    recoSel_ePi = (recoPiE + piMass)/1000. # convert from KE -> total energy and to GeV
+    #         #         recoSel_ePi = recoPiE + piMass # convert from KE -> total energy
 
-            # Looking at muons
-            if (pdg == 13): # mu 
+    #         #         # if got to this point: 
+    #         #         cosmicPassed = cosmicPassed + 1
 
-                print("Found muon.")
-                recosel_muons = recosel_muons + 1
+    #         # Looking at muons
+    #         if (pdg == 13): # mu 
 
-                recoMuE = t.trackRecoE[i] # this is the kinetic energy, in MeV
-                print("recoMuE: ", recoMuE)
-                if (recoMuE > 0): 
-                    recoMomMu = recoMomCalc(recoMuE, muMass)
+    #             print("Found muon.")
+    #             recosel_muons = recosel_muons + 1
 
-                print("Does this muon meet the momentum threshold (max 1.5 GeV)?")
-                print("recoMomMu: ", recoMomMu)
-                if ( recoMomMu < 1.5 ):
-                    print("Yes, it is under 1.5 GeV. Incrementing number of N recosel_muons.")
-                    recosel_muonsN = recosel_muonsN + 1
-                    recoSel_recoMomMu = recoMomMu
+    #             recoMuE = t.trackRecoE[i] # this is the kinetic energy, in MeV
+    #             print("recoMuE: ", recoMuE)
+    #             if (recoMuE > 0): 
+    #                 recoMomMu = recoMomCalc(recoMuE, muMass)
 
-                    recoSel_trkDirMuX = t.trackStartDirX[i]*recoMomMu
-                    recoSel_trkDirMuY = t.trackStartDirY[i]*recoMomMu
-                    recoSel_trkDirMuZ = t.trackStartDirZ[i]*recoMomMu
+    #             print("Does this muon meet the momentum threshold (max 1.5 GeV)?")
+    #             print("recoMomMu: ", recoMomMu)
+    #             if ( recoMomMu < 1.5 ):
+    #                 print("Yes, it is under 1.5 GeV. Incrementing number of N recosel_muons.")
+    #                 recosel_muonsN = recosel_muonsN + 1
+    #                 recoSel_recoMomMu = recoMomMu
 
-                    recoSel_trackCompMu = t.trackComp[i]
+    #                 recoSel_trkDirMuX = t.trackStartDirX[i]*recoMomMu
+    #                 recoSel_trkDirMuY = t.trackStartDirY[i]*recoMomMu
+    #                 recoSel_trkDirMuZ = t.trackStartDirZ[i]*recoMomMu
 
-                    recoSel_eMu = (recoMuE + muMass)/1000. # convert from KE -> total energy and to GeV
+    #                 recoSel_trackCompMu = t.trackComp[i]
 
-            # Now look at protons
-            if (pdg == 2212):
+    #                 recoSel_eMu = recoMuE + muMass # convert from KE -> total energy
 
-                print("Found proton.")
-                recosel_protons = recosel_protons + 1 
+    #                 # if got to this point: 
+    #                 #cosmicPassed = 3
 
-                recoPE = t.trackRecoE[i]
-                print("recoPE: ", recoPE)
-                if (recoPE > 0): 
-                    recoMomP = recoMomCalc(recoPE, pMass)
+    #         # # Now look at protons
+    #         # if (pdg == 2212):
+
+    #         #     print("Found proton.")
+    #         #     recosel_protons = recosel_protons + 1 
+
+    #         #     recoPE = t.trackRecoE[i]
+    #         #     print("recoPE: ", recoPE)
+    #         #     if (recoPE > 0): 
+    #         #         recoMomP = recoMomCalc(recoPE, pMass)
                 
-                print("recoMomP = ", recoMomP)
-                print("Does this proton meet the momentum threshold?")
-                if ( recoMomP > 0.30 and recoMomP < 1.0 ):
-                    print("Yes, appending to list of N proton moms.")
-                    recosel_NMomsP.append(recoMomP) # list of N recosel_protons in the event
-                    recosel_protonsN = recosel_protonsN + 1
+    #         #     print("recoMomP = ", recoMomP)
+    #         #     print("Does this proton meet the momentum threshold?")
+    #         #     if ( recoMomP > 0.30 and recoMomP < 1.0 ):
+    #         #         print("Yes, appending to list of N proton moms.")
+    #         #         recosel_NMomsP.append(recoMomP) # list of N recosel_protons in the event
+    #         #         recosel_protonsN = recosel_protonsN + 1
 
-                    print("Is this the leading proton?")
-                    if ( recoMomP == max(recosel_NMomsP) ):
-                        print("Yes. Updating mom and ang.")
-                        recoSel_recoMomP = recoMomP
+    #         #         print("Is this the leading proton?")
+    #         #         if ( recoMomP == max(recosel_NMomsP) ):
+    #         #             print("Yes. Updating mom and ang.")
+    #         #             recoSel_recoMomP = recoMomP
 
-                    recoSel_trkDirPX = t.trackStartDirX[i]*recoMomP
-                    recoSel_trkDirPY = t.trackStartDirY[i]*recoMomP
-                    recoSel_trkDirPZ = t.trackStartDirZ[i]*recoMomP
+    #         #         recoSel_trkDirPX = t.trackStartDirX[i]*recoMomP
+    #         #         recoSel_trkDirPY = t.trackStartDirY[i]*recoMomP
+    #         #         recoSel_trkDirPZ = t.trackStartDirZ[i]*recoMomP
 
-                    recoSel_trackCompP = t.trackComp[i]
+    #         #         recoSel_trackCompP = t.trackComp[i]
 
-                    recoSel_eP = (recoPE  + pMass)/1000. # convert from KE -> total energy and to GeV
+    #         #         recoSel_eP = recoPE  + pMass # convert from KE -> total energy
 
-                else: 
-                    print("NO. The p mom was ", recoMomP, "which is either < 0.3 GeV or > 1 GeV")
+    #         #         # if got to this point: 
+    #         #         cosmicPassed = cosmicPassed + 1
 
-        # at this point, we have looped through all tracks in the event
-        recoSel_recoNuE = t.recoNuE/1000. # grab the event's reco's neutrino energy in GeV
-        recoSel_recoContained = t.vtxContainment # was the reco interaction fully contained?
+    #         #     else: 
+    #         #         print("NO. The p mom was ", recoMomP, "which is either < 0.3 GeV or > 1 GeV")
 
-        # grab TKI related info for reco TKI
-        pPi = np.array([recoSel_trkDirPiX, recoSel_trkDirPiY, recoSel_trkDirPiZ])
-        pP = np.array([recoSel_trkDirPX, recoSel_trkDirPY, recoSel_trkDirPZ])
-    
-        z = selModule.getTransverseAxis(recoSel_recoNuE, recoSel_trkDirMuX, recoSel_trkDirMuY, recoSel_trkDirMuZ)
+    #         recoSel_recoNuE = t.recoNuE
+    #         recoSel_recoContained = t.vtxContainment
 
-        recoSel_delPTT = selModule.delPTT(z, pPi, pP)
+    #         #print("cosmicPassed score was: ", cosmicPassed)
 
-        recoSel_delPT = selModule.delPT(recoSel_trkDirPiX, recoSel_trkDirPX, recoSel_trkDirMuX, recoSel_trkDirPiY, recoSel_trkDirPY, recoSel_trkDirMuY)
 
-        recoSel_pL = selModule.pL(recoSel_trkDirPZ, recoSel_trkDirMuZ, recoSel_trkDirPiZ, recoSel_eP, recoSel_eMu, recoSel_ePi, recoSel_delPT)
-        recoSel_pLGKI = selModule.pLGKI(recoSel_trkDirPZ, recoSel_trkDirMuZ, recoSel_trkDirPiZ, recoSel_eP, recoSel_eMu, recoSel_ePi)
-
-        recoSel_pN = np.sqrt( np.dot(recoSel_delPT, recoSel_delPT) + np.dot(recoSel_pL, recoSel_pL) )
-        recoSel_pNGKI = np.sqrt( np.dot(recoSel_delPT, recoSel_delPT) + np.dot(recoSel_pLGKI, recoSel_pLGKI) )
-
-        recoSel_delAlphaT = selModule.delAlphaT(recoSel_trkDirMuX, recoSel_trkDirMuY, recoSel_delPT) 
-
+    #if (cosmicPassed == 3):
     
     print("Filling lists...")
 
+    '''
     if (passedSel == 1) or (passedSel == 3):
         finalList_truth.append(e)
     if (passedSel == 2) or (passedSel == 3):
         finalList_reco.append(e)
     if (passedSel == 3): 
         finalList_both.append(e)
+    '''
 
     passedSel_[0] = passedSel
     run_[0] = t.run
     subrun_[0] = t.subrun
     event_[0] = t.event
-    weight_[0] = t.xsecWeight
+    ##weight_[0] = t.xsecWeight
 
+    '''
     # truth selection items
     truthSel_truthPionMom_[0] = truthSel_truthPionMom
     #pionAng_[0] = truthsel_leadingAngPi
@@ -616,33 +562,25 @@ for e in range(entries): #entries
     #muonAng_[0] = truthsel_leadingAngMu
     truthSel_truthLProtonMom_[0] = truthSel_truthLProtonMom
 
-    truthSel_pxP_[0] = truthSel_trkDirPX
-    truthSel_pyP_[0] = truthSel_trkDirPY
-    truthSel_pzP_[0] = truthSel_trkDirPZ
+    truthSel_pxP_[0] = truthSel_trkDirPX/1000. # convert MeV to GeV
+    truthSel_pyP_[0] = truthSel_trkDirPY/1000.
+    truthSel_pzP_[0] = truthSel_trkDirPZ/1000.
 
-    truthSel_pxPi_[0] = truthSel_trkDirPiX
-    truthSel_pyPi_[0] = truthSel_trkDirPiY
-    truthSel_pzPi_[0] = truthSel_trkDirPiZ
+    truthSel_pxPi_[0] = truthSel_trkDirPiX/1000.
+    truthSel_pyPi_[0] = truthSel_trkDirPiY/1000.
+    truthSel_pzPi_[0] = truthSel_trkDirPiZ/1000.
 
-    truthSel_pxMu_[0] = truthSel_trkDirMuX
-    truthSel_pyMu_[0] = truthSel_trkDirMuY
-    truthSel_pzMu_[0] = truthSel_trkDirMuZ
+    truthSel_pxMu_[0] = truthSel_trkDirMuX/1000.
+    truthSel_pyMu_[0] = truthSel_trkDirMuY/1000.
+    truthSel_pzMu_[0] = truthSel_trkDirMuZ/1000.
 
-    truthSel_eNu_[0] = truthSel_eNu
-    truthSel_eMu_[0] = truthSel_eMu
-    truthSel_ePi_[0] = truthSel_ePi
-    truthSel_eP_[0] = truthSel_eP
+    truthSel_eNu_[0] = t.trueNuE # already in GeV in ntuple?
+    truthSel_eMu_[0] = truthSel_eMu/1000.
+    truthSel_ePi_[0] = truthSel_ePi/1000.
+    truthSel_eP_[0] = truthSel_eP/1000.
+    '''
 
-    truthSel_truthContainedMu_[0] = truthSel_truthContainedMu
-    truthSel_truthContainedPi_[0] = truthSel_truthContainedPi
-    truthSel_truthContainedLP_[0] = truthSel_truthContainedLP
-    truthSel_truthContainedAll_[0] = truthSel_truthContainedAll
-
-    truthSel_delPTT_[0] = truthSel_delPTT
-    truthSel_pN_[0] = truthSel_pN
-    truthSel_delAlphaT_[0] = truthSel_delAlphaT
-
-    recoSel_recoNuE_[0] = recoSel_recoNuE
+    recoSel_recoNuE_[0] = recoSel_recoNuE/1000.
     recoSel_recoContained_[0] = recoSel_recoContained
     recoSel_recoMomPi_[0] = recoSel_recoMomPi
     recoSel_recoMomMu_[0] = recoSel_recoMomMu
@@ -662,13 +600,9 @@ for e in range(entries): #entries
     recoSel_trackCompPi_[0] = recoSel_trackCompPi
     recoSel_trackCompP_[0] = recoSel_trackCompP
 
-    recoSel_eMu_[0] = recoSel_eMu
-    recoSel_ePi_[0] = recoSel_ePi
-    recoSel_eP_[0] = recoSel_eP
-
-    recoSel_delPTT_[0] = recoSel_delPTT
-    recoSel_pN_[0] = recoSel_pN
-    recoSel_delAlphaT_[0] = recoSel_delAlphaT
+    recoSel_eMu_[0] = recoSel_eMu/1000.
+    recoSel_ePi_[0] = recoSel_ePi/1000.
+    recoSel_eP_[0] = recoSel_eP/1000.
 
     #lProtonAng_[0] = truthsel_leadingAngP
     #pxP_[0] = pxP/1000.
