@@ -7,6 +7,7 @@ from ROOT import TFile, TTree
 
 import numpy as np
 from array import array
+import selModule
 
 f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
 #f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/reco_v2me05_gen2ntuple_bnb_nu_overlay_run3_v6.root","READ")
@@ -15,7 +16,7 @@ t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsSim_v2me06_071524_withContainedVar.root","recreate")
+newF = TFile("selectedEventsSim_v2me06_101524_withContainedVar.root","recreate")
 # Make this file have a TTree
 newT = TTree("selectedEvents", "Selected Events Tree")
 
@@ -52,6 +53,12 @@ recoContained_ = array('i', [0])
 recoMomPi_ = array('d', [0.])
 recoMomMu_ = array('d', [0.])
 recoMomP_ = array('d', [0.])
+trackCompMu_ = array('d', [0.])
+trackCompPi_ = array('d', [0.])
+trackCompP_ = array('d', [0.])
+trackTrueCompMu_ = array('d', [0.])
+trackTrueCompPi_ = array('d', [0.])
+trackTrueCompP_ = array('d', [0.])
 newT.Branch('run_', run_, 'run_/I')
 newT.Branch('subrun_', subrun_, 'subrun_/I')
 newT.Branch('event_', event_, 'event_/I')
@@ -83,6 +90,12 @@ newT.Branch('recoContained_', recoContained_, 'recoContained_/I')
 newT.Branch('recoMomPi_', recoMomPi_, 'recoMomPi_/D')
 newT.Branch('recoMomMu_', recoMomMu_, 'recoMomMu_/D')
 newT.Branch('recoMomP_', recoMomP_, 'recoMomP_/D')
+newT.Branch('trackCompMu_', trackCompMu_, 'trackCompMu_/D')
+newT.Branch('trackCompPi_', trackCompPi_, 'trackCompPi_/D')
+newT.Branch('trackCompP_', trackCompP_, 'trackCompP_/D')
+newT.Branch('trackTrueCompMu_', trackTrueCompMu_, 'trackTrueCompMu_/D')
+newT.Branch('trackTrueCompPi_', trackTrueCompPi_, 'trackTrueCompPi_/D')
+newT.Branch('trackTrueCompP_', trackTrueCompP_, 'trackTrueCompP_/D')
 
 entries = t.GetEntries()
 print("This is how many entries this ntuple file has: ", entries)
@@ -93,6 +106,7 @@ newF.cd()
 lProtonAng = []
 
 finalList = []
+passedModule = []
 
 # events I am vetoing for now
 veto = np.loadtxt("allDiff.txt", dtype=float) 
@@ -137,6 +151,12 @@ for e in range(entries): #entries
     print("This is the run number: ", t.run )
     print("This is the subrun number: ", t.subrun )
     print("This is the event number: ", t.event )
+
+    outModule = selModule.truthSel(t)
+    if (outModule == True): 
+        passedModule.append(e)
+
+    print( selModule.truthSel(t) )
 
     # looking at "truePrimPart" variables in ntuple
     # these correspond to truth clusters with process = primary
@@ -202,6 +222,8 @@ for e in range(entries): #entries
     # loop through truth clusters in event
     for i in range(n):
 
+        print("This is cluster #", i)
+
         #if (t.trueSimPartProcess[i] == 1 and pdg == 22): 
         #    print("Found a gamma.")
         #    print("Its parent particle is ")
@@ -263,6 +285,12 @@ for e in range(entries): #entries
             print("Found muon.")
             muons = muons + 1
             muTID = t.trueSimPartTID[i]
+
+            if (muons > 1):
+                flag = 1
+                print("More than 1 muon! Skipping event...")
+                flag = 1
+                break
             
             pxMu = t.trueSimPartPx[i]
             print(pxMu)
@@ -360,8 +388,17 @@ for e in range(entries): #entries
     recoMomMu = -1.0
     recoMomP = -1.0
 
+    trackCompMu = -1.0
+    trackCompPi = -1.0
+    trackCompP = -1.0
+
+    trackTrueCompMu = -1.0
+    trackTrueCompPi = -1.0
+    trackTrueCompP = -1.0
+
     # now look at the reco info
     for k in range(nn):
+
 
         recoTID = t.trackTrueTID[k]
         print("This is the reco'd TID!", recoTID)
@@ -369,6 +406,8 @@ for e in range(entries): #entries
         # reco'd pion information
         if (recoTID == piTID): 
             recoPiPID = t.trackPID[k]
+            trackCompPi = t.trackComp[k]
+            trackTrueCompPi = t.trackTrueComp[k]
             recoPiE = t.trackRecoE[k] # kinetic energy
             print("Reco Track PID: ", recoPiPID)
             print("Reco energy: ", recoPiE)
@@ -379,6 +418,8 @@ for e in range(entries): #entries
         # reco'd muon information
         if (recoTID == muTID): 
             recoMuPID = t.trackPID[k]
+            trackCompMu = t.trackComp[k]
+            trackTrueCompMu = t.trackTrueComp[k]
             recoMuE = t.trackRecoE[k] # kinetic energy
             print("Reco Track PID: ", recoMuPID)
             print("Reco energy: ", recoMuE)
@@ -389,12 +430,16 @@ for e in range(entries): #entries
         # reco'd leading proton information
         if (recoTID == pTID): 
             recopPID = t.trackPID[k]
+            trackCompP = t.trackComp[k]
+            trackTrueCompP = t.trackTrueComp[k]
             recopE = t.trackRecoE[k] # kinetic energy
             print("Reco Track PID: ", recopPID)
             print("Reco energy: ", recopE)
             if (recopE > 0): 
                 recoMomP = recoMomCalc(recopE, pMass)
             print("This is the reco'd mom in GeV: ", recoMomP)
+
+        
         
 
     if (recoMomPi != -1) and (recoMomMu != -1) and (recoMomP != -1): 
@@ -469,13 +514,28 @@ for e in range(entries): #entries
     recoMomPi_[0] = recoMomPi
     recoMomMu_[0] = recoMomMu
     recoMomP_[0] = recoMomP
+    trackCompMu_[0] = trackCompMu
+    trackCompPi_[0] = trackCompPi
+    trackCompP_[0] = trackCompP
+    trackTrueCompMu_[0] = trackCompMu
+    trackTrueCompPi_[0] = trackCompPi
+    trackTrueCompP_[0] = trackCompP
     newT.Fill()
 
 print("Done!")
 print("Final List: ", finalList)
 print("lProtonAng: ", lProtonAng, " with a size of: ", len(lProtonAng)) 
 
-#np.savetxt('finalList_sim_may21.csv', finalList, delimiter=',')
+#np.savetxt('finalList_truth_082624.csv', finalList, delimiter=',')
 
 newF.Write()
 newF.Close()
+
+print("finalList = ", finalList)
+print("passedModule = ", passedModule)
+
+print("This is how many were in finalList but NOT passedModule:")
+print( list(set(finalList) - set(passedModule)) )
+
+print("This is how many were in passedModule but NOT finalList:")
+print( list(set(passedModule) - set(finalList)) )
