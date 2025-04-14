@@ -9,13 +9,15 @@ import numpy as np
 from array import array
 import selModule
 
-f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
+f = TFile("flat_ntuples/make_dlgen2_flat_ntuples_reco_v2me06_gen2ntuple_bnb_nu_overlay_run1_v7_output.root","READ")
+#f = TFile("flat_ntuples/dlgen2_reco_v2me06_ntuple_v7_nuwro_run1_overlay_bnb_ccandnc.root","READ")
+#f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
 
 t = f.Get("EventTree")
 t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsTrueRecoBoth_vtxOnly_121824.root","recreate")
+newF = TFile("selectedEventsTrueRecoBoth_fullSel_v7_containment_april1.root","recreate")
 newT = TTree("selectedEvents", "Selected Events Tree") 
 
 passedSel_ = array('i', [0]) # 1 if passed truth, 2 if reco, 3 if both
@@ -51,13 +53,21 @@ truthSel_delPTT_ = array('d', [0.])
 truthSel_pN_ = array('d', [0.])
 truthSel_delAlphaT_ = array('d', [0.])
 
+truthSel_modeNu_ = array('i', [0])
+truthSel_intrxnNu_ = array('i', [0])
+
+truthSel_numProtons_ = array('i', [0])
+truthSel_numPions_ = array('i', [0])
+truthSel_numMuons_ = array('i', [0])
+
+truthSel_numOtherParticles_ = array('i', [0])
+truthSel_numPiNaught_ = array('i', [0])
+
 '''
 lProtonAng_ = array('d', [0.])
 pionAng_ = array('d', [0.])
 muonAng_ = array('d', [0.])
 pdgNu_ = array('i', [0])
-#modeNu_ = array('i', [0])
-#intrxnNu_ = array('i', [0])
 '''
 
 recoSel_recoNuE_ = array('d', [0.])
@@ -87,6 +97,11 @@ recoSel_eMu_ = array('d', [0.])
 recoSel_delPTT_ = array('d', [0.])
 recoSel_pN_ = array('d', [0.])
 recoSel_delAlphaT_ = array('d', [0.])
+
+recoSel_numProtons_ = array('i', [0])
+recoSel_numPions_ = array('i', [0])
+recoSel_numMuons_ = array('i', [0])
+
 
 newT.Branch('passedSel_', passedSel_, 'passedSel_/I')
 newT.Branch('run_', run_, 'run_/I')
@@ -125,9 +140,25 @@ newT.Branch('lProtonAng_', lProtonAng_, 'lProtonAng_/D')
 newT.Branch('pionAng_', pionAng_, 'pionAng_/D')
 newT.Branch('muonAng_', muonAng_, 'muonAng_/D')
 newT.Branch('pdgNu_', pdgNu_, 'pdgNu_/I')
-#newT.Branch('modeNu_', modeNu_, 'modeNu_/I')
-#newT.Branch('intrxnNu_', intrxnNu_, 'intrxnNu_/I')
 '''
+
+newT.Branch('truthSel_modeNu_', truthSel_modeNu_, 'truthSel_modeNu_/I')
+newT.Branch('truthSel_intrxnNu_', truthSel_intrxnNu_, 'truthSel_intrxnNu_/I')
+
+newT.Branch('truthSel_numProtons_', truthSel_numProtons_, 'truthSel_numProtons_/I')
+newT.Branch('truthSel_numPions_', truthSel_numPions_, 'truthSel_numPions_/I')
+newT.Branch('truthSel_numMuons_', truthSel_numMuons_, 'truthSel_numMuons_/I')
+
+newT.Branch('truthSel_numOtherParticles_', truthSel_numOtherParticles_, 'truthSel_numOtherParticles_/I')
+newT.Branch('truthSel_numPiNaught_', truthSel_numPiNaught_, 'truthSel_numPiNaught_/I')
+
+newT.Branch('truthSel_muonTID_', truthSel_muonTID_, 'truthSel_muonTID_/I')
+newT.Branch('truthSel_pionTID_', truthSel_pionTID_, 'truthSel_pionTID_/I')
+newT.Branch('truthSel_lProtonTID_', truthSel_lProtonTID_, 'truthSel_lProtonTID_/I')
+
+
+
+
 newT.Branch('recoSel_recoNuE_', recoSel_recoNuE_, 'recoSel_recoNuE_/D')
 newT.Branch('recoSel_recoContained_', recoSel_recoContained_, 'recoSel_recoContained_/I')
 newT.Branch('recoSel_recoMomPi_', recoSel_recoMomPi_, 'recoSel_recoMomPi_/D')
@@ -155,6 +186,11 @@ newT.Branch('recoSel_eMu_', recoSel_eMu_, 'recoSel_eMu_/D')
 newT.Branch('recoSel_delPTT_', recoSel_delPTT_, 'recoSel_delPTT_/D')
 newT.Branch('recoSel_pN_', recoSel_pN_, 'recoSel_pN_/D')
 newT.Branch('recoSel_delAlphaT_', recoSel_delAlphaT_, 'recoSel_delAlphaT_/D')
+
+newT.Branch('recoSel_numProtons_', recoSel_numProtons_, 'recoSel_numProtons_/I')
+newT.Branch('recoSel_numPions_', recoSel_numPions_, 'recoSel_numPions_/I')
+newT.Branch('recoSel_numMuons_', recoSel_numMuons_, 'recoSel_numMuons_/I')
+
 
 
 
@@ -221,17 +257,26 @@ for e in range(entries): #entries
     if (e in veto):  
         print("This entry is in the veto list!")
         continue
-    
+
+    print("result of selModule.truthSelNumParticles (# p, pi, mu, flag): ", selModule.truthSelNumParticles(t))
+    print("result of selModule.recoSelNumParticles (# p, pi, mu, flag): ", selModule.recoSelNumParticles(t))
+
+    numParticlesTruth = selModule.truthSelNumParticles(t)
+    print("number of protons in truth was: ", numParticlesTruth[0])
+    numParticlesReco = selModule.recoSelNumParticles(t)
+
 
     passedSel = 0
 
     if (selModule.truthSel(t) == True): 
-        if (selModule.recoSelVtxOnly(t) == True): 
+        if (selModule.recoSel(t) == True): 
             passedSel = 3 # passed both truth and reco selection
         else: 
             passedSel = 1 # only passed truth selection
-    elif (selModule.recoSelVtxOnly(t) == True):
+    elif (selModule.recoSel(t) == True):
         passedSel = 2 # only passed reco selection
+
+    print("passedSel number? (1 for true only, 2 for reco only, 3 for both): ", passedSel)
 
     # skip event and don't fill if passed neither truth nor reco sel
     if (passedSel == 0): continue
@@ -425,9 +470,14 @@ for e in range(entries): #entries
 
                         truthSel_truthContainedLP = t.trueSimPartContained[i] 
 
+
         # done with looping through tracks
         # grab event level info for events that passed truth selection 
         truthSel_eNu = t.trueNuE # already in GeV in ntuple?
+
+        if ( truthSel_truthContainedPi == 1 and truthSel_truthContainedMu == 1 and truthSel_truthContainedLP == 1):
+            print("Hey look at that, all 3 tracks were contained")
+            truthSel_truthContainedAll = 1
 
         # grab TKI related info for truth TKI
         pPi = np.array([truthSel_trkDirPiX, truthSel_trkDirPiY, truthSel_trkDirPiZ])
@@ -642,6 +692,16 @@ for e in range(entries): #entries
     truthSel_pN_[0] = truthSel_pN
     truthSel_delAlphaT_[0] = truthSel_delAlphaT
 
+    truthSel_modeNu_[0] = t.trueNuMode
+    truthSel_intrxnNu_[0] = t.trueNuIntrxnType
+
+    truthSel_numProtons_[0] = numParticlesTruth[0]
+    truthSel_numPions_[0] = numParticlesTruth[1]
+    truthSel_numMuons_[0] = numParticlesTruth[2]
+
+    truthSel_numOtherParticles_[0] = numParticlesTruth[4]
+    truthSel_numPiNaught_[0] = numParticlesTruth[5]
+
     recoSel_recoNuE_[0] = recoSel_recoNuE
     recoSel_recoContained_[0] = recoSel_recoContained
     recoSel_recoMomPi_[0] = recoSel_recoMomPi
@@ -670,6 +730,10 @@ for e in range(entries): #entries
     recoSel_pN_[0] = recoSel_pN
     recoSel_delAlphaT_[0] = recoSel_delAlphaT
 
+    recoSel_numProtons_[0] = numParticlesReco[0]
+    recoSel_numPions_[0] = numParticlesReco[1]
+    recoSel_numMuons_[0] = numParticlesReco[2]
+
     #lProtonAng_[0] = truthsel_leadingAngP
     #pxP_[0] = pxP/1000.
     #pyP_[0] = pyP/1000.
@@ -685,8 +749,6 @@ for e in range(entries): #entries
     #ePi_[0] = energyPi/1000.
     #eNu_[0] = t.trueNuE
     #pdgNu_[0] = t.trueNuPDG
-    #modeNu_[0] = t.trueNuMode
-    #intrxnNu_[0] = t.trueNuIntrxnType
 
     newT.Fill()
 

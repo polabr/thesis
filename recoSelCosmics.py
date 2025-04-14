@@ -8,14 +8,14 @@ import numpy as np
 from array import array
 import selModule
 
-f = TFile("dlgen2_reco_v2me06_ntuple_v5_mcc9_v29e_dl_run1_extbnb_combined.root","READ")
+f = TFile("flat_ntuples/dlgen2_reco_v2me06_ntuple_v5_mcc9_v29e_dl_run1_extbnb_combined.root","READ")
 #f = TFile("/cluster/tufts/wongjiradlabnu/pabrat01/gen2ntuple/outdir/dlgen2_reco_v2me06_ntuple_v5_mcc9_v28_wctagger_bnboverlay.root","READ")
 
 t = f.Get("EventTree")
 ##t_pot = f.Get("potTree")
 
 # Create new .root file that will contain the result of this script
-newF = TFile("selectedEventsTrueRecoBoth_cosmics_vtxOnly_121824_2.root","recreate")
+newF = TFile("selectedEventsTrueRecoBoth_cosmics_fullSel_withTKI_011625.root","recreate")
 newT = TTree("selectedEvents", "Selected Events Tree") 
 
 passedSel_ = array('i', [0]) # 1 if passed truth, 2 if reco, 3 if both
@@ -211,7 +211,7 @@ for e in range(entries): #entries
     '''
 
     # note that with EXTBNB, there is no truth info, so can't run truth selection
-    if (selModule.recoSelVtxOnly(t) == True):
+    if (selModule.recoSel(t) == True):
         passedSel = 2 # passed reco selection
 
     # skip event and don't fill if passed neither truth nor reco sel
@@ -293,6 +293,10 @@ for e in range(entries): #entries
     recosel_protonsN = 0 
     recosel_muonsN = 0
     recosel_pionsN = 0
+
+    # event level vars to save
+    recoSel_recoNuE = t.recoNuE/1000.
+    recoSel_recoContained = t.vtxContainment
 
     '''
     ## TRUTH CLUSTER LOOP ##
@@ -432,9 +436,9 @@ for e in range(entries): #entries
     #             pdg = t.trackPID[i]
     #             print("Its LArPID predicted PDG score is: ", pdg)
 
-    #         #recoTID = t.trackTrueTID[i]
+    # #         #recoTID = t.trackTrueTID[i]
 
-    #         # # Looking at pions
+    # #         # # Looking at pions
     #         # if (pdg == 211 or pdg == -211): 
 
     #         #     print("Found pion.")
@@ -463,76 +467,74 @@ for e in range(entries): #entries
     #         #         # if got to this point: 
     #         #         cosmicPassed = cosmicPassed + 1
 
-    #         # Looking at muons
-    #         if (pdg == 13): # mu 
+            # # Looking at muons
+            # if (pdg == 13): # mu 
 
-    #             print("Found muon.")
-    #             recosel_muons = recosel_muons + 1
+            #     print("Found muon.")
+            #     recosel_muons = recosel_muons + 1
 
-    #             recoMuE = t.trackRecoE[i] # this is the kinetic energy, in MeV
-    #             print("recoMuE: ", recoMuE)
-    #             if (recoMuE > 0): 
-    #                 recoMomMu = recoMomCalc(recoMuE, muMass)
+            #     recoMuE = t.trackRecoE[i] # this is the kinetic energy, in MeV
+            #     print("recoMuE: ", recoMuE)
+            #     if (recoMuE > 0): 
+            #         recoMomMu = recoMomCalc(recoMuE, muMass)
 
-    #             print("Does this muon meet the momentum threshold (max 1.5 GeV)?")
-    #             print("recoMomMu: ", recoMomMu)
-    #             if ( recoMomMu < 1.5 ):
-    #                 print("Yes, it is under 1.5 GeV. Incrementing number of N recosel_muons.")
-    #                 recosel_muonsN = recosel_muonsN + 1
-    #                 recoSel_recoMomMu = recoMomMu
+            #     print("Does this muon meet the momentum threshold (max 1.5 GeV)?")
+            #     print("recoMomMu: ", recoMomMu)
+            #     if ( recoMomMu < 1.5 ):
+            #         print("Yes, it is under 1.5 GeV. Incrementing number of N recosel_muons.")
+            #         recosel_muonsN = recosel_muonsN + 1
+            #         recoSel_recoMomMu = recoMomMu
 
-    #                 recoSel_trkDirMuX = t.trackStartDirX[i]*recoMomMu
-    #                 recoSel_trkDirMuY = t.trackStartDirY[i]*recoMomMu
-    #                 recoSel_trkDirMuZ = t.trackStartDirZ[i]*recoMomMu
+            #         recoSel_trkDirMuX = t.trackStartDirX[i]*recoMomMu
+            #         recoSel_trkDirMuY = t.trackStartDirY[i]*recoMomMu
+            #         recoSel_trkDirMuZ = t.trackStartDirZ[i]*recoMomMu
 
-    #                 recoSel_trackCompMu = t.trackComp[i]
+            #         recoSel_trackCompMu = t.trackComp[i]
 
-    #                 recoSel_eMu = recoMuE + muMass # convert from KE -> total energy
+            #         recoSel_eMu = recoMuE + muMass # convert from KE -> total energy
 
-    #                 # if got to this point: 
-    #                 #cosmicPassed = 3
+            #         # if got to this point: 
+            #         #cosmicPassed = 3
 
-    #         # # Now look at protons
-    #         # if (pdg == 2212):
+            # # Now look at protons
+            # if (pdg == 2212):
 
-    #         #     print("Found proton.")
-    #         #     recosel_protons = recosel_protons + 1 
+            #     print("Found proton.")
+            #     recosel_protons = recosel_protons + 1 
 
-    #         #     recoPE = t.trackRecoE[i]
-    #         #     print("recoPE: ", recoPE)
-    #         #     if (recoPE > 0): 
-    #         #         recoMomP = recoMomCalc(recoPE, pMass)
+            #     recoPE = t.trackRecoE[i]
+            #     print("recoPE: ", recoPE)
+            #     if (recoPE > 0): 
+            #         recoMomP = recoMomCalc(recoPE, pMass)
                 
-    #         #     print("recoMomP = ", recoMomP)
-    #         #     print("Does this proton meet the momentum threshold?")
-    #         #     if ( recoMomP > 0.30 and recoMomP < 1.0 ):
-    #         #         print("Yes, appending to list of N proton moms.")
-    #         #         recosel_NMomsP.append(recoMomP) # list of N recosel_protons in the event
-    #         #         recosel_protonsN = recosel_protonsN + 1
+            #     print("recoMomP = ", recoMomP)
+            #     print("Does this proton meet the momentum threshold?")
+            #     if ( recoMomP > 0.30 and recoMomP < 1.0 ):
+            #         print("Yes, appending to list of N proton moms.")
+            #         recosel_NMomsP.append(recoMomP) # list of N recosel_protons in the event
+            #         recosel_protonsN = recosel_protonsN + 1
 
-    #         #         print("Is this the leading proton?")
-    #         #         if ( recoMomP == max(recosel_NMomsP) ):
-    #         #             print("Yes. Updating mom and ang.")
-    #         #             recoSel_recoMomP = recoMomP
+            #         print("Is this the leading proton?")
+            #         if ( recoMomP == max(recosel_NMomsP) ):
+            #             print("Yes. Updating mom and ang.")
+            #             recoSel_recoMomP = recoMomP
 
-    #         #         recoSel_trkDirPX = t.trackStartDirX[i]*recoMomP
-    #         #         recoSel_trkDirPY = t.trackStartDirY[i]*recoMomP
-    #         #         recoSel_trkDirPZ = t.trackStartDirZ[i]*recoMomP
+            #         recoSel_trkDirPX = t.trackStartDirX[i]*recoMomP
+            #         recoSel_trkDirPY = t.trackStartDirY[i]*recoMomP
+            #         recoSel_trkDirPZ = t.trackStartDirZ[i]*recoMomP
 
-    #         #         recoSel_trackCompP = t.trackComp[i]
+            #         recoSel_trackCompP = t.trackComp[i]
 
-    #         #         recoSel_eP = recoPE  + pMass # convert from KE -> total energy
+            #         recoSel_eP = recoPE  + pMass # convert from KE -> total energy
 
-    #         #         # if got to this point: 
-    #         #         cosmicPassed = cosmicPassed + 1
+            #         # if got to this point: 
+            #         #cosmicPassed = cosmicPassed + 1
 
-    #         #     else: 
-    #         #         print("NO. The p mom was ", recoMomP, "which is either < 0.3 GeV or > 1 GeV")
+            #     else: 
+            #         print("NO. The p mom was ", recoMomP, "which is either < 0.3 GeV or > 1 GeV")
 
-    #         recoSel_recoNuE = t.recoNuE
-    #         recoSel_recoContained = t.vtxContainment
 
-    #         #print("cosmicPassed score was: ", cosmicPassed)
+            # #print("cosmicPassed score was: ", cosmicPassed)
 
 
     #if (cosmicPassed == 3):
@@ -552,7 +554,7 @@ for e in range(entries): #entries
     run_[0] = t.run
     subrun_[0] = t.subrun
     event_[0] = t.event
-    ##weight_[0] = t.xsecWeight
+    ##weight_[0] = t.xsecWeight # no xsec weights for cosmics
 
     '''
     # truth selection items
@@ -580,7 +582,7 @@ for e in range(entries): #entries
     truthSel_eP_[0] = truthSel_eP/1000.
     '''
 
-    recoSel_recoNuE_[0] = recoSel_recoNuE/1000.
+    recoSel_recoNuE_[0] = recoSel_recoNuE
     recoSel_recoContained_[0] = recoSel_recoContained
     recoSel_recoMomPi_[0] = recoSel_recoMomPi
     recoSel_recoMomMu_[0] = recoSel_recoMomMu
